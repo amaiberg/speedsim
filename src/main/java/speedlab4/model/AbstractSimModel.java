@@ -28,7 +28,7 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
     protected AbstractAnalyzer analyzer;
     protected String name;
     protected I latticeSize;
-
+      //test
     public AbstractSimModel(int latticeSize) {
 
         this.latticeSize = getParamInteger(latticeSize, "Lattice Size", 50, 100, "Size N of the NxN simulation grid", true);
