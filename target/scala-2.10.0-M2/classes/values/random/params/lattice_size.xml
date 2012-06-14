@@ -1,5 +1,0 @@
-<resources>
-<integer name="min">10</integer>
-<integer name="def">100</integer>
-<integer name="max">500</integer>
-</resources>
