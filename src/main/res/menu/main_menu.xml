@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/lattice"
+          android:icon="@drawable/ic_menu_smalltiles"
+          android:title="@string/lattice">
+        <menu>
+            <item android:id="@+id/disp"
+                  android:title="@string/disp"/>
+            <item android:id="@+id/sirs"
+                  android:title="@string/sirs"/>
+            <item android:id="@+id/vac"
+                  android:title="@string/vac"/>
+            <item android:id="@+id/ctest"
+                  android:title="@string/ctest"/>
+            <item android:id="@+id/frog"
+                  android:title="@string/frog"/>
+            <item android:id="@+id/random"
+                  android:title="@string/random"/>
+            <item android:id="@+id/intro"
+                  android:title="Intro"/>
+            <item android:id="@+id/random2"
+                  android:title="Random2"/>
+        </menu>
+    </item>
+
+    <item android:id="@+id/plot"
+          android:icon="@drawable/ic_menu_chart"
+          android:title="Plot"/>
+    <item android:id="@+id/parameters"
+          android:icon="@drawable/ic_menu_settings"
+          android:title="Paremeters"/>
+    <item android:id="@+id/modelController"
+          android:icon="@drawable/ic_menu_globe"
+          android:title="Model"/>
+    <item android:id="@+id/more"
+          android:icon="@drawable/ic_menu_more"
+          android:title="More"/>
+</menu>

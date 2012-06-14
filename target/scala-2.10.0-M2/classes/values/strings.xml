@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Speedlab</string>
+    <string name="lattice">Lattice</string>
+    <string name="sirs"> SIRS-2 </string>
+    <string name="ctest"> cTest </string>
+    <string name="disp">Dispersal2</string>
+    <string name ="vac">Vaccinated Communities</string>
+    <string name ="frog">FrogSim</string>
+    <string name="random">Random</string>
+    <string name="startBtnTxt">Continue</string>
+    <string name="stopBtnTxt">Pause</string>
+    <string name="initBtnTxt">Start</string>
+    <string name="restartBtnTxt">Restart</string>
+</resources>
