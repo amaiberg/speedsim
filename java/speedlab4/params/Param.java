@@ -1,5 +1,7 @@
 package speedlab4.params;
 
+import java.io.Serializable;
+
 import speedlab4.model.Visitable;
 
 /**
@@ -9,7 +11,7 @@ import speedlab4.model.Visitable;
  * Time: 7:13 PM
  * To change this template use File | Settings | File Templates.
  */
-public abstract class Param<E> implements Visitable {
+public abstract class Param<E> implements Visitable, Serializable {
     public String name, description;
     public E value;
     public boolean reqRestart = false;

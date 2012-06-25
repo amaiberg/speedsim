@@ -37,6 +37,14 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
         iParams.put(this.latticeSize.name, this.latticeSize);
         params.put(this.latticeSize.name, this.latticeSize);
     }
+    
+    public AbstractSimModel(int latticeSize, Param[] params) {
+        this(latticeSize);
+        for (Param p : params) {
+            this.params.put(p.name, p);
+            p.visit(this, null);
+        }
+    }
 
 
     //initialize lattice
@@ -55,6 +63,9 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
     // public abstract P getParamDouble(double value, String name, double min, double max);
 
     public abstract D getParamDouble(String name, double value, double min, double max, String description, boolean reqRestart);
+    
+    public abstract ParamLinkedDouble getParamLinkedDouble(String name, double value, double min, double max, String description, boolean reqRestart);
+    
 
 
     public String getName() {
@@ -67,24 +78,37 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
         init();
     }
 
+    /*
+     * Puts the params in the map and calls to have them
+     * put into their type-specific maps
+     */
     public void setParams(Param... params) {
         for (Param param : params) {
             this.params.put(param.name, param);
             param.visit(this, null);
         }
     }
-
+    
+    /*
+     * Puts the param in the map and calls to have it
+     * put into its type-specific map
+     */
     public void setParam(Param param) {
         this.params.put(param.name, param);
         param.visit(this, null);
     }
-
+    
+    /*
+     * Returns all the Param names for this model as 
+     * a set of Strings
+     */
     public Set<String> getParamNames() {
         return params.keySet();
     }
 
-
-
+    /*
+     * Returns all the Params for this model as an array
+     */
     public Param[] getParams() {
         return params.values().toArray(new Param[]{});
     }
@@ -106,13 +130,11 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
     // public abstract I getParamInteger(int value, String name, int min, int max);
 
 
-    public AbstractSimModel(int latticeSize, Param[] params) {
-        this(latticeSize);
-        for (Param p : params) {
-            this.params.put(p.name, p);
-            p.visit(this, null);
-        }
-    }
+
+    
+    /*
+     * Methods that return a new Param and add it to the params map.
+     */
 
     public D DP(String name, double value, double min, double max, String description, boolean reqRestart) {
         D dp = getParamDouble(name, value, min, max, description, reqRestart);
@@ -122,8 +144,18 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
 
     public D DP(String name, double value, double min, double max) {
         return DP(name, value, min, max, "", false);
-
     }
+    
+    public ParamLinkedDouble LDP(String name, double value, double min, double max, String description, boolean reqRestart) {
+    	ParamLinkedDouble dp = getParamLinkedDouble(name, value, min, max, description, reqRestart);
+        setParam(dp);
+        return dp;
+    }
+
+    public ParamLinkedDouble LDP(String name, double value, double min, double max) {
+        return LDP(name, value, min, max, "", false);
+    }
+    
 
     public I IP(String name, int value, int min, int max, String description, boolean reqRestart) {
         I ip = getParamInteger(value, name, min, max, description, reqRestart);
@@ -136,6 +168,10 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
     }
 
 
+    /*
+     * Methods to add Params to their type-specific maps
+     */
+    
     public <AD extends ParamDouble> Object doDouble(AD pd, Object v) {
         dParams.put(pd.name, (D) pd);
         return null;
@@ -150,6 +186,11 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
     public <L extends ParamBoolean> Object doBoolean(L pd, Object v) {
         bParams.put(pd.name, pd);
         return null;
+    }
+    
+    public <LD extends ParamLinkedDouble> Object doLinkedDouble(LD pd, Object v){
+    	dParams.put(pd.name, (D) pd);
+    	return null;
     }
 
     public <G extends ParamGroupDouble> Object doGroupDouble(G groupDouble, Object o) {

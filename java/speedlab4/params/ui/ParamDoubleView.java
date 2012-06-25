@@ -11,9 +11,9 @@ import speedlab4.params.ParamDouble;
  * Time: 6:53 PM
  * To change this template use File | Settings | File Templates.
  */
-public class ParamDoubleView extends ParamNumberView<ParamDouble> {
-
-    public ParamDoubleView(Context context, ParamDouble paramDouble, ViewGroup.LayoutParams parent) {
+public class ParamDoubleView<D extends ParamDouble> extends ParamNumberView<D> {
+	
+    public ParamDoubleView(Context context, D paramDouble, ViewGroup.LayoutParams parent) {
         super(context, paramDouble, parent);
     }
 

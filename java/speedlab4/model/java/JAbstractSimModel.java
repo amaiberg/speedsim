@@ -8,7 +8,9 @@ import speedlab4.ui.chart.ChartData;
 import speedlab4.model.AbstractSimModel;
 import speedlab4.params.Param;
 import speedlab4.params.ParamDouble;
+import speedlab4.params.ParamGroupDouble;
 import speedlab4.params.ParamInteger;
+import speedlab4.params.ParamLinkedDouble;
 
 public abstract class JAbstractSimModel extends AbstractSimModel<ParamInteger, ParamDouble> {
 
@@ -23,18 +25,41 @@ public abstract class JAbstractSimModel extends AbstractSimModel<ParamInteger, P
     }
 
 
+    /*
+     * Returns a new ParamInteger object
+     */
     public ParamInteger getParamInteger(int value, String name, int min, int max) {
         return new ParamInteger(name, value, min, max);
     }
 
+    /*
+     * Returns a new ParamInteger object
+     */
     @Override
     public ParamInteger getParamInteger(int value, String name, int min, int max, String description, boolean reqRestart) {
         return new ParamInteger(name, value, min, max, description, reqRestart);
     }
 
+    /*
+     * Returns a new ParamDouble object
+     */
     @Override
     public ParamDouble getParamDouble(String name, double value, double min, double max, String description, boolean reqRestart) {
         return new ParamDouble(name, value, min, max, description, reqRestart);
+    }
+    
+    /*
+     * Returns a new ParamLinkedDouble object
+     */
+    public ParamLinkedDouble getParamLinkedDouble(String name, double value, double min, double max, String description, boolean reqRestart) {
+        return new ParamLinkedDouble(name, value, min, max, description, reqRestart);
+    }
+
+    /*
+     * Returns a new ParamGroupDouble object
+     */
+    public ParamGroupDouble getParamGroupDouble(String name, ParamDouble... params){
+    	return new ParamGroupDouble(name, params);
     }
 
     public class StandInAnalyzer extends AbstractAnalyzer {

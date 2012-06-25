@@ -61,16 +61,16 @@ public class CTestAbstractSimModel extends JAbstractSimModel {
 
     @Override
     protected void init() {
-        AssetFileDescriptor r = mContext.getResources().openRawResourceFd(R.raw.land1);
-        if (r != null) {
-            FileDescriptor fd = r.getFileDescriptor();
-            long off = r.getStartOffset();
-            long len = r.getLength();
-            int check = initsim(this.getSize(), fd, off, len);
-            if (check == 1) {
-                Log.i("!", "C access failed");
-            }
-        } else Log.i("!", "access failed");
+//        AssetFileDescriptor r = mContext.getResources().openRawResourceFd(R.raw.land1);
+//        if (r != null) {
+//            FileDescriptor fd = r.getFileDescriptor();
+//            long off = r.getStartOffset();
+//            long len = r.getLength();
+//            int check = initsim(this.getSize(), fd, off, len);
+//            if (check == 1) {
+//                Log.i("!", "C access failed");
+//            }
+//        } else Log.i("!", "access failed");
 
         //   if(check !=0) throw new IllegalAccessError("sdffs");
     }

@@ -15,7 +15,6 @@ import speedlab4.params.ui.ParamNumberView;
 
 public class ParamDoubleListener extends ParamBarListener<ParamDouble, Double> {
 
-
     public ParamDoubleListener(ParamDouble param, ParamNumberView<ParamDouble> paramView, ModelController mc) {
         super(param, paramView, mc);
     }
@@ -29,6 +28,6 @@ public class ParamDoubleListener extends ParamBarListener<ParamDouble, Double> {
     public void onStopTrackingTouch(SeekBar seekBar) {
         param.setParam(seekBar.getProgress() / 100d);
         paramView.onValueChanged(param.value);
-        modelController.setParams(param);
+        modelController.setParams(param);        
     }
 }

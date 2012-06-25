@@ -19,9 +19,15 @@ public abstract class ParamBarListener<P extends ParamNumber, N extends Number> 
         super(param, paramView, mc);
     }
 
-    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-        progress = (param.min.doubleValue() + ((double) i / (double) seekBar.getMax() * (param.max.doubleValue() - param.min.doubleValue())));
-        paramView.onValueChanged(getProgress());
+    /*
+     * Notification that the progress of the seekbar has changed.
+     * @param fromUser distinguishes between user and programmatic changes to progress
+     */
+    public void onProgressChanged(SeekBar seekBar, int i, boolean fromUser) {
+    	if (fromUser){
+    		progress = (param.min.doubleValue() + ((double) i / (double) seekBar.getMax() * (param.max.doubleValue() - param.min.doubleValue())));
+    		paramView.onValueChanged(getProgress());
+    	}
     }
 
     public void onStartTrackingTouch(SeekBar seekBar) {
@@ -30,7 +36,9 @@ public abstract class ParamBarListener<P extends ParamNumber, N extends Number> 
     protected abstract N getProgress();
 
     public void onStopTrackingTouch(SeekBar seekBar) {
+    	// set value in param object, correcting for min/max as needed
         param.setParam(getProgress());
+        // update the param view
         paramView.onValueChanged(getProgress());
         modelController.setParams(reqRestart,param);
     }

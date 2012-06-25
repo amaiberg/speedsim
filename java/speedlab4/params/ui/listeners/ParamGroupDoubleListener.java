@@ -18,7 +18,7 @@ import java.util.*;
  */
 public class ParamGroupDoubleListener extends ParamDoubleListener {
 
-    private SortedSet<ParamDoubleView> paramGroupDouble;
+    private SortedSet<ParamDoubleView<ParamDouble>> paramGroupDouble;
     List<ParamDoubleView> sortedList;
     Comparator<ParamDoubleView> viewComparator;
 
@@ -43,6 +43,9 @@ public class ParamGroupDoubleListener extends ParamDoubleListener {
 
     }
 
+    /*
+     * When one param changed, others need to be changed accordingly
+     */
     private void updateOtherParams(SeekBar seekBar) {
         double prevVal, curVal, delta, distDelta;
         prevVal = param.value;
@@ -59,7 +62,7 @@ public class ParamGroupDoubleListener extends ParamDoubleListener {
 
         double offset = 0d, epsilon = Math.pow(10, -6);
 
-        for (ParamDoubleView pi : sortedList)
+        for (ParamDoubleView<ParamDouble> pi : sortedList)
             if (!param.equals(pi.param)) {
 
                 double ival = pi.param.value;
@@ -87,7 +90,7 @@ public class ParamGroupDoubleListener extends ParamDoubleListener {
 
     private class ParamDoubleViewComparator implements Comparator<ParamDoubleView> {
 
-        @Override
+        //@Override
         public int compare(ParamDoubleView p1, ParamDoubleView p2) {
             Double p1Val = p1.getCur().doubleValue(), p2Val = p2.getCur().doubleValue();
             return p1Val.compareTo(p2Val);

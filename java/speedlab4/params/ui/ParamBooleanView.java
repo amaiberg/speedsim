@@ -26,7 +26,6 @@ public class ParamBooleanView extends ParamView<ParamBoolean> {
         toggleButton.setChecked(param.value);
 
         toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 param.setParam(b);
             }

@@ -14,11 +14,12 @@ import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 import speedlab4.model.XYPoint;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
 
-public class ChartController extends AbstractDemoChart {
+public class ChartController extends AbstractDemoChart implements Serializable {
 
     private int numPlots;
     private GraphicalView view;
@@ -70,7 +71,7 @@ public class ChartController extends AbstractDemoChart {
                     }
                 }
             }
-        }
+        }, "Chart Drawing Thread"
         ).start();
     }
 

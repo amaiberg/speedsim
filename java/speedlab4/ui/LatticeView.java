@@ -25,7 +25,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, Serializable {
 
     public float square_size;
-    public BlockingQueue<double[][]> latticeBuffer = new ArrayBlockingQueue<double[][]>(5);
+    public BlockingQueue<double[][]> latticeBuffer = new ArrayBlockingQueue<double[][]>(5);////
     private Paint p;
     private int startx, starty, width = 100, height = 100;
     private AbstractSimModel abstractSimModel;
@@ -86,7 +86,10 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
        latticeBuffer.clear();
     }
 
-    //@Override
+    /*
+     * Retrieves/removes the matrix at the head of the
+     * latticeBuffer queue and draws it to backCanvas
+     */
     public void drawOnCanvas(Canvas canvas) {
         double[][] lastMat = new double[10][10];
                try {
@@ -161,18 +164,33 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
     }
 
 
+    /*
+     * Part of SurfaceHolder.Callback interface
+     * Called by system when surface is first created
+     */
     public void surfaceCreated(SurfaceHolder holder) {
-  //      viewThread.setRunning(true);
+        viewThread.setRunning(true);
         viewThread.start();
-
+        maxframes = 1;
+        // wait for modelController to put array in buffer
+        while (true){
+        	if (latticeBuffer.peek() != null)
+        		break;
+        }
+        viewThread.setDraw(true);
     }
 
 
+    /*
+     * Part of SurfaceHolder.Callback interface
+     * Called by stop(), which is called when the Activity's onStop() is called
+     */
     public void surfaceDestroyed(SurfaceHolder holder) {
         boolean retry = true;
         viewThread.setRunning(false);
         while (retry) {
             try {
+            	// Blocks this thread (main thread) until viewThread dies.
                 viewThread.join();
                 retry = false;
             } catch (InterruptedException e) {
@@ -181,8 +199,10 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
         }
     }
 
+    /*
+     * Called when Activity's onStop() called
+     */
     public void stop() {
-
         surfaceDestroyed(getHolder());
         viewThread.interrupt();
     }
@@ -192,20 +212,24 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
     }
 
     public void pause(){
-        viewThread.setRunning(false);
+        viewThread.setDraw(false);
         maxframes =0;
     }
 
+    /*
+     * Called by modelController's resume(), which is called by Activity's
+     * onResume() and by the 'Continue' button
+     */
     public void resume(){
         maxframes =-1;
-        viewThread.setRunning(true);
+        viewThread.setDraw(true);
     }
 
     public void resume(int maxframes){
         if(maxframes != -1){
             this.frames =0;
             this.maxframes = maxframes;
-            viewThread.setRunning(true);
+            viewThread.setDraw(true);
             }
         }
 
@@ -215,52 +239,59 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
 
         private final SurfaceHolder surfaceHolder;
         private LatticeView view;
-        private boolean run = false;
+        volatile private boolean run = false;
+        volatile private boolean draw = false;
 
         public SurfaceViewThread(SurfaceHolder surfaceHolder, LatticeView view) {
+            super("Surface View thread");
             this.surfaceHolder = surfaceHolder;
             this.view = view;
         }
 
         public void setRunning(boolean val) {
-            run = val;
+        	run = val;
+        }
+        
+        public void setDraw(boolean val) {
+        	draw = val;
         }
 
         public void run() {
             Canvas c;
-            while (true) {
-                if(run && (frames < maxframes || maxframes == -1)){
-                    c = null;
-                frames++;
-                view.drawOnCanvas(backCanvas);
+            while (run) {               		
+            	if(draw && (frames < maxframes || maxframes == -1)){ 
+            		c = null;
+            		frames++;
+            		// get matrix from queue and draw it on backBuffer
+            		view.drawOnCanvas(backCanvas);
 
-                try {
-                    synchronized (surfaceHolder) {
-                        c = surfaceHolder.lockCanvas();
-                        c.drawBitmap(backBuffer, 0, 0, null);
-                    }
-                    Thread.sleep((int)(rate * 600d));
+            		try {
+            			synchronized (surfaceHolder) {
+            				// take bitmap from backBuffer and draw it onto Surface
+            				c = surfaceHolder.lockCanvas();
+            				c.drawBitmap(backBuffer, 0, 0, null);
+            			}
+            			Thread.sleep((int)(rate * 600d));
 
-                } catch (InterruptedException e) {
+            		} catch (InterruptedException e) {
 
-                } finally {
-                    // do this in a finally so that if an exception is thrown
-                    // during the above, we don't leave the Surface in an
-                    // inconsistent state
-                    if (c != null) {
-                        surfaceHolder.unlockCanvasAndPost(c);
-                    }
-                    else{
+            		} finally {
+            			// do this in a finally so that if an exception is thrown
+            			// during the above, we don't leave the Surface in an
+            			// inconsistent state
+            			if (c != null) {
+            				surfaceHolder.unlockCanvasAndPost(c);
+            			}
+            			else{
 
-                //        try {
-                       //     Thread.sleep(30);
-                  //      } catch (InterruptedException e) {
-                //            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                    //    }
-                    }
-                }
-
-                }
+            				//        try {
+            				//     Thread.sleep(30);
+            				//      } catch (InterruptedException e) {
+            				//            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            				//    }
+            			}
+            		}
+            	}
             }
 
         }

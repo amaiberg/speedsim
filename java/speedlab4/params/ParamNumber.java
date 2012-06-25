@@ -9,6 +9,8 @@ package speedlab4.params;
  */
 public abstract class ParamNumber<N extends Number> extends Param<N> {
 
+    public N min, max;
+    
     public ParamNumber(String name, N value, N min, N max) {
         super(name, value);
         this.min = min;
@@ -30,8 +32,6 @@ public abstract class ParamNumber<N extends Number> extends Param<N> {
         this.reqRestart = reqRestart;
     }
 
-    public N min, max;
-
     public void setParam(N val) {
         double tVal = val.doubleValue();
         double tMax = max.doubleValue();
@@ -42,5 +42,6 @@ public abstract class ParamNumber<N extends Number> extends Param<N> {
             value = min;
         else value = val;
     }
+    
 
 }

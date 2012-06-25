@@ -3,6 +3,7 @@ package speedlab4;
 import com.speedlab4.R;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.*;
@@ -11,29 +12,27 @@ import android.widget.*;
 import speedlab4.model.AbstractSimModel;
 import speedlab4.model.ModelController;
 import speedlab4.model.c.CTestAbstractSimModel;
+import speedlab4.model.java.CommunityVaccinated;
 import speedlab4.model.java.Random;
 //import speedlab4.model.scala.SIRS;
 import speedlab4.params.*;
 import speedlab4.ui.LatticeView;
 import speedlab4.ui.chart.ChartView;
 
-//TODO: Create separate XMLs for landscape and portrait layouts
+//TODO: Add models(2 or 3)
+//TODO: intro screen
+//TODO: painting
+//TODO: navigation between lattices - gallery, pre-animation
 //TODO: Create enum class that uses R.id properties for each lattice
 //TODO: Decide if graph engine should draw every step, or an entire interval
-// OR have a different interval for the analyzer
-//TODO: Build standard parameter menus as they appear in the original app.
-//TODO: Create Scala activity for separate compilation/deployment units?
-//TODO: Make UI prettier (more even in portrait mode)
-//TODO: Decide if LatticeAnalyzer needs to be part of the AbstractSimModel interface, or AbstractSimModel give enough info
-//for an external/abstract lattice analyzer to   work with.
-//TODO: Decide if drawing speed should affect the modelController or the LatticeView (producer/consumer problems)
-//TODO: onClick XML does not work for Scala compiles
+	// OR have a different interval for the analyzer
+
 public class SpeedSimActivity extends Activity {
     private ModelController modelController;
     private LinearLayout ll;
     private AbstractSimModel prevSim, curSim;
     private Button strtBtn;
-    private Button fltBtn;
+    private Button fltBtn, restartBtn;
     private ViewFlipper flipper;
     private GridView paramGrid;
     private Context thisContext;
@@ -54,7 +53,7 @@ public class SpeedSimActivity extends Activity {
         paramGrid = (GridView) findViewById(R.id.param_grid);
 
 //        Toast.makeText(getApplicationContext(), stringFromJNI(), Toast.LENGTH_LONG).show();
-        //     restartBtn = (Button) findViewById(R.id.restrtBtn);
+        restartBtn = (Button) findViewById(R.id.restartBtn);
         fltBtn = (Button) findViewById(R.id.floating_button);
         this.thisContext = this;
 
@@ -69,7 +68,7 @@ public class SpeedSimActivity extends Activity {
         } else {
 
             modelController = new ModelController(latticeView, chartView);
-            curSimID = R.id.random2; //default simModel
+            curSimID = R.id.vac; //default simModel
         }
     }
 
@@ -146,6 +145,12 @@ public class SpeedSimActivity extends Activity {
 
     }
 
+    /*
+     * Currently not being called because configChanges not specified in Manifest
+     * 
+     * (non-Javadoc)
+     * @see android.app.Activity#onConfigurationChanged(android.content.res.Configuration)
+     */
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -173,6 +178,9 @@ public class SpeedSimActivity extends Activity {
 
     }
 
+    /*
+     * Called when Continue/Pause button is clicked
+     */
     public void pauseModel(View view) {
         String text = "";
         if (!modelController.pause) {
@@ -183,6 +191,9 @@ public class SpeedSimActivity extends Activity {
         } else continueModel();
     }
 
+    /*
+     * Called when Continue button is clicked
+     */
     public void continueModel() {
         String text;
         if (modelController.pause) {
@@ -242,6 +253,7 @@ public class SpeedSimActivity extends Activity {
              //      curSim.setParams(params);
                 return true;
             case R.id.vac:
+            	initSim(new CommunityVaccinated());
                 return true;
             case R.id.ctest:
                 initSim(new CTestAbstractSimModel(256, this));

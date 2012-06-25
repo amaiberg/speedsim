@@ -14,6 +14,8 @@ public interface Paramable<T, A> {
     public <AI extends ParamInteger> T doInt(AI pi, A args);
 
     public <B extends ParamBoolean> T doBoolean(B pi, A args);
+    
+    public <LD extends ParamLinkedDouble> T doLinkedDouble(LD pd, A args);
 
     //  public <G extends ParamGroup> T doGroup(G pi, A args);
 

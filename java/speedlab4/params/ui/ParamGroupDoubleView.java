@@ -13,7 +13,7 @@ import speedlab4.params.ui.listeners.ParamBarListener;
  * Time: 12:47 PM
  * To change this template use File | Settings | File Templates.
  */
-public class ParamGroupDoubleView extends ParamGroupView<Double, ParamDouble, ParamDoubleView> {
+public class ParamGroupDoubleView extends ParamGroupView<Double, ParamDouble, ParamDoubleView<ParamDouble>> {
 
 
     public ParamGroupDoubleView(Context context, ParamGroup<ParamDouble> paramDoubleParamGroup, ViewGroup.LayoutParams parent) {

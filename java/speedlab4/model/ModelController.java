@@ -28,13 +28,14 @@ import java.io.Serializable;
 public class ModelController implements Serializable {
 
 
-    public LatticeView latticeView;
+    transient public LatticeView latticeView;
     public AbstractSimModel simModel;
-    private ChartView chartView;
+    transient private ChartView chartView;
     private AbstractAnalyzer analyzer;
-    private Thread runningSim;
+    transient private Thread runningSim; 
     private Param[] paramsToUpdate;
-    public boolean pause = true;//, running = true;
+    public boolean pause = true;
+    volatile public boolean run = true;
 //    private double rate;
 
     public ModelController(LatticeView view, ChartView chartView) {
@@ -60,6 +61,10 @@ public class ModelController implements Serializable {
         latticeView.setSimModel(simModel);
     }
 
+    /*
+     * Called by the Activity in onCreate when the modelController
+     * is being pulled from a savedInstanceState
+     */
     public void resetController(AbstractSimModel abstractSimModel, ChartView chartView, LatticeView latticeView) {
         setChartView(chartView);
         setLatticeView(latticeView);
@@ -69,10 +74,16 @@ public class ModelController implements Serializable {
 
     public void execute() {
         computeLatticeAndUpdate();
+        // if (pause) latticeView.drawOne()
     }
 
+    /*
+     * Called by Activity's onStop method
+     */
     public void stop() {
+    	pause();
         latticeView.stop();
+        run = false;
         runningSim.interrupt();
     }
 
@@ -89,12 +100,16 @@ public class ModelController implements Serializable {
     public void resume() {
         latticeView.resume();
         pause = false;
-        //     draw();
     }
 
+    /*
+     * Called by Activity's onDestroy method
+     */
     public void destroyModel() {
-        if (runningSim != null)
+        if (runningSim != null){
+        	run = false; //
             runningSim.interrupt();
+        }
     }
 
 
@@ -103,6 +118,7 @@ public class ModelController implements Serializable {
         boolean ran = !pause;
         if (ran) {
             pause();
+            run = false; 
             runningSim.interrupt();
         }
         // simModel.setParams(params);
@@ -113,7 +129,7 @@ public class ModelController implements Serializable {
         }
         if (ran) {
             resume();
-            computeLatticeAndUpdate();
+            computeLatticeAndUpdate(); 
         } else if (restart) next(1);
     }
 
@@ -128,15 +144,16 @@ public class ModelController implements Serializable {
     }
 
     public void computeLatticeAndUpdate() {
-        runningSim = new Thread() {
+    	run = true;
+        runningSim = new Thread("Running Sim Thread") {
             public void run() {
-                while (true) {
+                while (run) { 
                     if (paramsToUpdate != null){
                         simModel.setParams(paramsToUpdate);
                         paramsToUpdate =null;}
                     ModelInstance mi = new ModelInstance(simModel.next(1), analyzer.getXPoint(), analyzer.getYPoint());
                     update(mi);
-                }
+                	}
             }
         };
         runningSim.start();

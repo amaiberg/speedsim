@@ -44,7 +44,7 @@
                   android:layout_width="fill_parent" android:orientation="horizontal"
             >
 
-       <!-- Button
+       <!--  Button
                 android:id="@+id/restrtBtn"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
@@ -76,11 +76,11 @@
                 android:layout_height="wrap_content"
                 android:text="Reset Defaults"
                 android:onClick="reset"/>
-        <Button android:id="@+id/restart"
+        <Button android:id="@+id/restartBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Restart"
-                android:onClick="restart"/>
+                android:onClick="restartModel"/>
 
 
     </LinearLayout>

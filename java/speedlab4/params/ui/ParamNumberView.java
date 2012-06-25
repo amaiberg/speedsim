@@ -3,6 +3,7 @@ package speedlab4.params.ui;
 import android.content.Context;
 import android.view.ViewGroup;
 import android.widget.*;
+import speedlab4.params.ParamDouble;
 import speedlab4.params.ParamNumber;
 import speedlab4.params.ui.listeners.ParamBarListener;
 
@@ -27,6 +28,9 @@ public abstract class ParamNumberView<P extends ParamNumber> extends ParamView<P
             cp = new RelativeLayout.LayoutParams(
                     RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
     private LinearLayout.LayoutParams llp = new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
+
+    public ParamNumberView<P> pairView; // used by ParamDoubleView<ParamLinkedDouble>
+    // pull out into ParamLinkedDoubleView, but first need to parameterize ParamBarListener by V extends ParamView
 
     protected abstract String getMaxStr();
 
@@ -94,18 +98,34 @@ public abstract class ParamNumberView<P extends ParamNumber> extends ParamView<P
         super.onMeasure(width, height);
     }
 
+    /*
+     * Called when the value of the seekbar changes. Updates the string representation
+     * of the value.
+     * Also sets the progress of the seek bar to 'progress', in case this value
+     * does not match what the seek bar shows
+     */
     public void onValueChanged(Number progress) {
         //   Toast.makeText(mContext, param.name + " = " + progress + "X" + progress, Toast.LENGTH_SHORT).show();
-        String sProgress = progress.toString();
+    	String sProgress = progress.toString();
         int min = param.min.intValue();
         if (progress.doubleValue() > min)
             tCur.setText("" + ((sProgress.length() > 5) ? sProgress.substring(0, 5) : sProgress));
         else tCur.setText("" + min);
+        
+        // update the bar to show the current value, because
+        // we may have changed it if it was illegal
+        paramBar.setProgress((int)((progress.doubleValue()-param.min.doubleValue())*paramBar.getMax() / (param.max.doubleValue() - param.min.doubleValue())));
+
     }
 
 
     public void setOnSeekListener(ParamBarListener<P, ? extends Number> sListener) {
         paramBar.setOnSeekBarChangeListener(sListener);
+    }
+    
+    // right now only used by ParamDoubleView<ParamLinkedDouble>
+    public void setPairView(ParamNumberView<P> pairView){
+    	this.pairView = pairView;
     }
 
 
