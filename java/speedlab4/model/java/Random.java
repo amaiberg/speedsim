@@ -26,9 +26,11 @@ import la4j.matrix.MatrixUtils;
 import la4j.vector.Vector;
 import la4j.vector.VectorFactory;
 import speedlab4.model.AbstractAnalyzer;
+import speedlab4.model.State;
 import speedlab4.ui.chart.ChartData;
 import speedlab4.params.Param;
 import speedlab4.params.ParamDouble;
+import com.speedlab4.R;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -76,14 +78,14 @@ public class Random extends JAbstractSimModel {
     private State state;
 
     public Random(int size, State state, Param... pd) {
-        super(size, pd);
+        super(size, R.string.RandomModel, pd);
         test = pd[0];
         init(state);
         name = "Random";
     }
 
     public Random(State state, Param... pd) {
-        super(100, pd);
+        super(100, R.string.RandomModel, pd);
         test = pd[0];
         init(state);
         name = "Random";
@@ -124,6 +126,12 @@ public class Random extends JAbstractSimModel {
     public int getColor(int cellState) {
         return colorMap.get(state).get(cellState);
     }
+    
+	@Override
+	public speedlab4.model.State[] getStates(){
+		speedlab4.model.State[] placeHolder = {new speedlab4.model.State("temp",Color.WHITE)};
+		return placeHolder;
+	}
 
     public double[][] first() {
         return occ.toArray();

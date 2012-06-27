@@ -14,13 +14,13 @@ import speedlab4.params.ParamLinkedDouble;
 
 public abstract class JAbstractSimModel extends AbstractSimModel<ParamInteger, ParamDouble> {
 
-    public JAbstractSimModel(int size, Param... params) {
-        super(size, params);
+    public JAbstractSimModel(int size, int descripID, Param... params) {
+        super(size, descripID, params);
         analyzer = new StandInAnalyzer();
     }
 
-    public JAbstractSimModel(int size) {
-        super(size);
+    public JAbstractSimModel(int size, int descripID) {
+        super(size, descripID);
         analyzer = new StandInAnalyzer();
     }
 

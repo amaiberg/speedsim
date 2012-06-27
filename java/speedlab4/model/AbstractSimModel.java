@@ -28,18 +28,20 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
     protected AbstractAnalyzer analyzer;
     protected String name;
     protected I latticeSize;
+    protected int descriptionResID; // string resource id for description view
       //test
-    public AbstractSimModel(int latticeSize) {
+    public AbstractSimModel(int latticeSize, int descripResID) {
 
         this.latticeSize = getParamInteger(latticeSize, "Lattice Size", 50, 100, "Size N of the NxN simulation grid", true);
+        this.descriptionResID = descripResID;
         System.out.println(this.latticeSize.value + "");
         Log.i("lvalue??", "=" + this.latticeSize.value);
         iParams.put(this.latticeSize.name, this.latticeSize);
         params.put(this.latticeSize.name, this.latticeSize);
     }
     
-    public AbstractSimModel(int latticeSize, Param[] params) {
-        this(latticeSize);
+    public AbstractSimModel(int latticeSize, int descripResID, Param[] params) {
+        this(latticeSize, descripResID);
         for (Param p : params) {
             this.params.put(p.name, p);
             p.visit(this, null);
@@ -58,6 +60,9 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
 
     //return first lattice instance
     public abstract double[][] first();
+    
+    //return an array of all the States for the model
+    public abstract State[] getStates();
 
     public abstract I getParamInteger(int value, String name, int min, int max, String description, boolean reqRestart);
     // public abstract P getParamDouble(double value, String name, double min, double max);
@@ -76,6 +81,13 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
 
     public void restart() {
         init();
+    }
+    
+    /*
+     * Returns the string resource ID for the model's description text
+     */
+    public int getDescriptionID(){
+    	return descriptionResID;
     }
 
     /*
@@ -198,7 +210,6 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
             dParams.put(pd.name, (D) pd);
         return null;
     }
-
 
 }
 

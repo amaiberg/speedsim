@@ -3,7 +3,6 @@ package speedlab4;
 import com.speedlab4.R;
 import android.app.Activity;
 import android.content.Context;
-import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.*;
@@ -13,10 +12,12 @@ import speedlab4.model.AbstractSimModel;
 import speedlab4.model.ModelController;
 import speedlab4.model.c.CTestAbstractSimModel;
 import speedlab4.model.java.CommunityVaccinated;
+import speedlab4.model.java.DynamicLandscape;
 import speedlab4.model.java.Random;
 //import speedlab4.model.scala.SIRS;
 import speedlab4.params.*;
 import speedlab4.ui.LatticeView;
+import speedlab4.ui.LegendAdapter;
 import speedlab4.ui.chart.ChartView;
 
 //TODO: Add models(2 or 3)
@@ -51,6 +52,7 @@ public class SpeedSimActivity extends Activity {
         ChartView chartView = (ChartView) findViewById(R.id.chartView);
         flipper = (ViewFlipper) findViewById(R.id.view_flipper);
         paramGrid = (GridView) findViewById(R.id.param_grid);
+        TextView descriptionView = (TextView) findViewById(R.id.descriptionView);
 
 //        Toast.makeText(getApplicationContext(), stringFromJNI(), Toast.LENGTH_LONG).show();
         restartBtn = (Button) findViewById(R.id.restartBtn);
@@ -62,13 +64,14 @@ public class SpeedSimActivity extends Activity {
         if (saved) {
             prevSim = curSim = (AbstractSimModel) savedInstanceState.get("curSim");
             modelController = (ModelController) savedInstanceState.get("modelController");
-            modelController.resetController(curSim, chartView, latticeView);
+            descriptionView = (TextView) findViewById(R.id.descriptionView);
+            modelController.resetController(curSim, chartView, latticeView, descriptionView);
             //      modelController.setSimModel(curSim);
 
         } else {
 
-            modelController = new ModelController(latticeView, chartView);
-            curSimID = R.id.vac; //default simModel
+            modelController = new ModelController(latticeView, chartView, descriptionView);
+            curSimID = R.id.dynamic; //default simModel
         }
     }
 
@@ -206,8 +209,9 @@ public class SpeedSimActivity extends Activity {
     }
 
     public void restartModel(View view) {
-        curSim.restart();
-        modelController.execute();
+    	modelController.restart();
+        //curSim.restart();
+        //modelController.execute();
     }
 
 
@@ -255,6 +259,9 @@ public class SpeedSimActivity extends Activity {
             case R.id.vac:
             	initSim(new CommunityVaccinated());
                 return true;
+            case R.id.dynamic:
+            	initSim(new DynamicLandscape());
+                return true;
             case R.id.ctest:
                 initSim(new CTestAbstractSimModel(256, this));
                 return true;
@@ -295,21 +302,26 @@ public class SpeedSimActivity extends Activity {
 
     public void initSim(AbstractSimModel abstractSimModel) {
 
-        if (curSim != prevSim) {
-            if (!modelController.pause)
-                pauseModel(strtBtn);
-            modelController.destroyModel();
-        }
+    	if (curSim != prevSim) {
+    		if (!modelController.pause)
+    			pauseModel(strtBtn);
+    		modelController.destroyModel();
+    	}
 
 
-        prevSim = curSim;
-        //   modelController = new ModelController(latticeView, chartView);
-        curSim = abstractSimModel;
-        modelController.setSimModel(curSim);
-        modelController.execute();
+    	prevSim = curSim;
+    	//   modelController = new ModelController(latticeView, chartView);
+    	curSim = abstractSimModel;
+    	modelController.setSimModel(curSim);
+    	modelController.execute();
 
-        ParamAdapter pAdapter = new ParamAdapter(thisContext, curSim.getParams(), modelController, new AbsListView.LayoutParams(0, 0));
-        paramGrid.setAdapter(pAdapter);
+    	ParamAdapter pAdapter = new ParamAdapter(thisContext, curSim.getParams(), modelController, new AbsListView.LayoutParams(0, 0));
+    	paramGrid.setAdapter(pAdapter);
+
+    	// set up legend in description view
+    	GridView legendGrid = (GridView)findViewById(R.id.legend_grid);
+    	LegendAdapter lAdapter = new LegendAdapter(thisContext, curSim.getStates());
+    	legendGrid.setAdapter(lAdapter);
 
     }
 

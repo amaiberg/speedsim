@@ -1,11 +1,13 @@
 package speedlab4.params;
 
+import java.io.Serializable;
+
 /*
  * Provides functionality for two linked params to know
  * when to update their values and what to update them to,
  * in order to keep both their values legal.
  */
-public interface LinkedParamChecker {
+public interface LinkedParamChecker extends Serializable {
 
 	/*
 	 * Return true if both p1 and p2 are allowable values.

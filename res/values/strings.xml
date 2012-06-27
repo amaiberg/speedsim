@@ -5,10 +5,28 @@
     <string name="ctest"> cTest </string>
     <string name="disp">Dispersal2</string>
     <string name ="vac">Vaccinated Communities</string>
+    <string name ="dynamic">Dynamic Landscape</string>
     <string name ="frog">FrogSim</string>
     <string name="random">Random</string>
     <string name="startBtnTxt">Continue</string>
     <string name="stopBtnTxt">Pause</string>
     <string name="initBtnTxt">Start</string>
     <string name="restartBtnTxt">Restart</string>
+    <string name="VaccCommModel"><b>Vaccinated Communites\n\n</b>Epidemiological model of a community-structured population with
+        vaccination. Each column in the lattice image represents a different community.  Communities
+        can have different vaccination levels.  Infected individuals contact others within their
+        same community, or from among the entire population, to attempt infection. The probability
+        of a contact being long-distance (not within one\'s own community) is given by \'alpha\'. If
+        the target is susceptible and unvaccinated, it becomes infected. Susceptible vaccinated targets
+        may or may not become infected, based on the given \'vaccine effectivess\' probability. Upon
+        recovery, individuals become susceptible again at the given \'loss of resistance\' rate.</string>
+        
+    <string name="DynamicLandModel"><b>Dynamic Landscape\n\n</b>This is a population model where some efforts are being made
+        to control the population.  For example, it might model the application of pesticides over
+        a given landscape.  Pesticide is applied to blocks of sites, e.g. 3x4 blocks of sites at
+        once (the block size is controlled by the two block size sliders). The overall per-site
+        disturbance rate is held constant, even as the block size is changed. Pesticide is applied
+        at the given \'disturbance rate\' per site; the pesticide dissipates and wears off at the
+        specified \'regrowth rate\'. </string>
+    <string name="RandomModel">Random model</string>
 </resources>

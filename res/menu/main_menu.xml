@@ -10,6 +10,8 @@
                   android:title="@string/sirs"/>
             <item android:id="@+id/vac"
                   android:title="@string/vac"/>
+            <item android:id="@+id/dynamic"
+                  android:title="@string/dynamic"/>
             <item android:id="@+id/ctest"
                   android:title="@string/ctest"/>
             <item android:id="@+id/frog"

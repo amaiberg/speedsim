@@ -271,7 +271,7 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
             				c = surfaceHolder.lockCanvas();
             				c.drawBitmap(backBuffer, 0, 0, null);
             			}
-            			Thread.sleep((int)(rate * 600d));
+            			Thread.sleep((int)(rate * 200d));
 
             		} catch (InterruptedException e) {
 

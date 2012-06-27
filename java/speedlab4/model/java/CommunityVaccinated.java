@@ -9,9 +9,12 @@ import org.achartengine.chart.LineChart;
 import org.achartengine.chart.PointStyle;
 import org.achartengine.renderer.BasicStroke;
 
+import com.speedlab4.R;
+
 import android.graphics.Color;
 
 import speedlab4.model.AbstractAnalyzer;
+import speedlab4.model.State;
 import speedlab4.params.Param;
 import speedlab4.params.ParamDouble;
 import speedlab4.params.ParamGroupDouble;
@@ -25,14 +28,13 @@ public class CommunityVaccinated extends JAbstractSimModel {
 	private double iArray[], uArray[], vArray[], rArray[], sArray[];
 	private int numPerCommunity, numCommunities;
 	//private int totalNumU, totalNumV, totalNumI, totalNumR, totalNumS;
-	private double cells[][], cellsBuffer[][];
+	private double cells[][];
 	private double EU2, measuredQuu, measuredEU, EI, ES, ER;
 	private int numSteps, maxNumSteps, numUpdatesPerStep, EX2denom, EXdenom, totalNumI, totalNumR,
 		timestep;
 	private Random random;
 	private boolean ready;
 	
-	// Change to set these in constructor with setParam(new ParamDouble(...))
 	private final ParamDouble phi = DP("contact rate", 2, 0, 20);
 	private final ParamDouble mu = DP("recovery rate", 1, 0, 20);
 	private final ParamDouble rho = DP("vaccine effectiveness", 0.8, 0, 1);
@@ -45,20 +47,18 @@ public class CommunityVaccinated extends JAbstractSimModel {
 	
 	private static final int SUS_UNVACC = 0, SUS_VACC = 1, INFECTED_UNVACC = 2, INFECTED_VACC = 3,
 			RESISTANT_UNVACC = 4, RESISTANT_VACC = 5;
-	private static final Map<Integer, Integer> colorMap = new HashMap<Integer, Integer>(){
-		{ 	put(0, Color.BLACK);	// susceptible - unvacc
-			put(1, Color.GREEN);	// susceptible - vacc
-			put(2, Color.RED);      // infected - unvacc
-			put(3, Color.MAGENTA); // infected - vacc
-			put(4, Color.BLUE);     // resistant - unvacc
-			put(5, Color.CYAN); //resistant - vacc
-		}
+
+	private static final State[] states= {new State("Susceptible Unvaccinated",Color.BLACK),
+		new State("Susceptible Vaccinated",Color.GREEN),
+		new State("Infected Unvaccinated",Color.RED),
+		new State("Infected Vaccinated",Color.MAGENTA),
+		new State("Resistant Unvaccinated",Color.BLUE),
+		new State("Resistant Vaccinated",Color.CYAN),
 	};
 	
 	
 	public CommunityVaccinated(Param... pd){
-		super(100, pd);
-		//ParamDouble.linkSum(phi, mu, 3);/////////////////
+		super(100, R.string.VaccCommModel, pd);
 		ParamLinkedDouble.linkGreaterOrEqual(EU, Quu);
 		name = "Vaccinated Communities";
 		numPerCommunity = 100; // lattice size
@@ -75,7 +75,6 @@ public class CommunityVaccinated extends JAbstractSimModel {
 		rArray = new double[numCommunities];
 		sArray = new double[numCommunities];
 		cells = new double[100][100]; // lattice size
-		cellsBuffer = new double[100][100];
 		numSteps = 0;
 		maxNumSteps = 10000;
 		numUpdatesPerStep = 100;
@@ -99,8 +98,6 @@ public class CommunityVaccinated extends JAbstractSimModel {
 			addSU(i, (int)(EU.value*numPerCommunity));
 			addSV(i, numPerCommunity - (int)(EU.value*numPerCommunity));
 		}
-		//measuredEU = EU.value;
-		
 		// Calculate initial clustering
 		if (EU.value == 0)
 			measuredQuu = 0;
@@ -128,23 +125,15 @@ public class CommunityVaccinated extends JAbstractSimModel {
 					addIV(houseToInfect, 1);
 				}
 			}
-		}
-		
+		}		
 		// Update cells grid
 		updateCellsGrid();
 		ready = true;
-
 	}
 	
-
-
 	@Override
 	public double[][] next(double time) {
-		if (timestep == -1){
-			timestep++;
-			return cells;
-		}
-		else if (ready){
+		if (ready){
 			if (Math.abs(Quu.value - measuredQuu) > .01){
 				adjustQuuStep();
 			}
@@ -152,14 +141,18 @@ public class CommunityVaccinated extends JAbstractSimModel {
 				adjustEUstep();
 			}
 			step();
-			return cells;
 		}
-		return null;
+		return cells;
 	}
 
 	@Override
 	public int getColor(int state) {
-		return colorMap.get(state);
+		return states[state].stateColor;
+	}
+	
+	@Override
+	public State[] getStates(){
+		return states;
 	}
 
 	@Override
@@ -176,22 +169,19 @@ public class CommunityVaccinated extends JAbstractSimModel {
             BasicStroke[] strokes = new BasicStroke[]{BasicStroke.SOLID, BasicStroke.SOLID, BasicStroke.SOLID};
             String[] types = new String[]{LineChart.TYPE, LineChart.TYPE, LineChart.TYPE};
             String[] titles = new String[]{"Susceptible", "Infected", "Resistant"};
-            ChartData chartData = new ChartData("Random", "time", "% of cells", titles, colors, styles, strokes, types, 3);
+            ChartData chartData = new ChartData("Vaccinated Communities", "time", "% of population", titles, colors, styles, strokes, types, 3);
             return chartData;
         }
 
         @Override
         public double getXPoint() {
-
             return timestep;  
         }
 
         @Override
         public double[] getYPoint() {
-            return new double[]{ES, EI, ER};  //To change body of implemented methods use File | Settings | File Templates.
+            return new double[]{ES, EI, ER};
         }
-
-
     }
 	
 	
@@ -206,8 +196,6 @@ public class CommunityVaccinated extends JAbstractSimModel {
 	 * level of clusterings as possible
 	 */
 	private void adjustQuu(){
-		
-
 		if (Quu.value < EU.value) // bring Quu up to minimum legal value
 			Quu.value = EU.value;
 		
@@ -222,7 +210,7 @@ public class CommunityVaccinated extends JAbstractSimModel {
 	 * Helper method to adjust Quu
 	 */
 	private void adjustQuuStep(){
-		int commJ, commK;
+		int commJ, commK, lessU, moreU;
 		double quuVal = Quu.value;
 		for (int i=0; i<numUpdatesPerStep; i++){
 			if (Math.abs(measuredQuu - quuVal) > 0.001){
@@ -238,60 +226,34 @@ public class CommunityVaccinated extends JAbstractSimModel {
 					double probRU = (ruArray[commJ] + ruArray[commK])/totalUArray;
 					double probArray[] = {probSU, probIU, probRU};
 					int whoToSwap = randvalRescale(3, probArray);
-
+					
+					if (uArray[commJ] <= uArray[commK]){ // find which community has more unvacc
+						lessU = commJ; moreU = commK;}
+					else{
+						lessU = commK; moreU = commJ;}
+						
 					if(measuredQuu < quuVal){
-						// need more clustering, so decrease the one with less, increase the one with more
-
-						// make sure there are enough/not too many unvacc in each community to make swap
-						if ((uArray[commJ] <= uArray[commK]) && (uArray[commJ]>=1.0) && (uArray[commK]<numPerCommunity)){
-							// check categories. community to decrease must have >= 1, and community to increase must be < total of the category
-							if (((whoToSwap == 0) && (suArray[commJ] >= 1.0) && (suArray[commK] < sArray[commK]))
-									|| ((whoToSwap == 1) && (iuArray[commJ] >= 1.0) && (iuArray[commK] < iArray[commK]))
-									|| ((whoToSwap == 2) && (ruArray[commJ] >= 1.0) && (ruArray[commK] < rArray[commK]))){
-								//allow swap
-								swap(commK, commJ, whoToSwap);
-							}
-						}
-						else if ((uArray[commJ] > uArray[commK]) && (uArray[commK]>=1.0) && (uArray[commJ]<numPerCommunity)){ 
-							// check categories. community to decrease must have >= 1, and community to increase must be < total of the category
-							if (((whoToSwap == 0) && (suArray[commK] >= 1.0) && (suArray[commJ] < sArray[commJ]))
-									|| ((whoToSwap == 1) && (iuArray[commK] >= 1.0) && (iuArray[commJ] < iArray[commJ]))
-									|| ((whoToSwap == 2) && (ruArray[commK] >= 1.0) && (ruArray[commJ] < rArray[commJ]))){
-								//allow swap
-								swap(commJ, commK, whoToSwap);
-							}
+						// need more clustering, so decrease the one with less, increase the one with more						
+						// check categories. community to decrease must have >= 1, and community to increase must be < total of the category
+						if (((whoToSwap == 0) && (suArray[lessU] >= 1.0) && (suArray[moreU] < sArray[moreU]))
+								|| ((whoToSwap == 1) && (iuArray[lessU] >= 1.0) && (iuArray[moreU] < iArray[moreU]))
+								|| ((whoToSwap == 2) && (ruArray[lessU] >= 1.0) && (ruArray[moreU] < rArray[moreU]))){							
+							swap(moreU, lessU, whoToSwap); //allow swap
 						}
 					}
 					else if(measuredQuu > quuVal){
-						//need less clustering, so increase the one with less, decrease the one with more
-
-						if ((uArray[commJ] < uArray[commK]) && (uArray[commK]>=1.0) && (uArray[commJ]<numPerCommunity)){
-							// check categories. community to decrease must have >= 1, and community to increase must be < total of the category
-							if (((whoToSwap == 0) && (suArray[commK] >= 1.0) && (suArray[commJ] < sArray[commJ]))
-									|| ((whoToSwap == 1) && (iuArray[commK] >= 1.0) && (iuArray[commJ] < iArray[commJ]))
-									|| ((whoToSwap == 2) && (ruArray[commK] >= 1.0) && (ruArray[commJ] < rArray[commJ]))){
-								// allow swap
-								swap(commJ, commK, whoToSwap);
-							}
-						}
-						else if ((uArray[commJ] > uArray[commK]) && (uArray[commJ]>=1.0) && (uArray[commK]<numPerCommunity)){
-							// check categories. community to decrease must have >= 1, and community to increase must be < total of the category
-							if (((whoToSwap == 0) && (suArray[commJ] >= 1.0) && (suArray[commK] < sArray[commK]))
-									|| ((whoToSwap == 1) && (iuArray[commJ] >= 1.0) && (iuArray[commK] < iArray[commK]))
-									|| ((whoToSwap == 2) && (ruArray[commJ] >= 1.0) && (ruArray[commK] < rArray[commK]))){
-								//allow swap
-								swap(commK, commJ, whoToSwap);
-							}
+						//need less clustering, so increase the one with less, decrease the one with more						
+						if (((whoToSwap == 0) && (suArray[moreU] >= 1.0) && (suArray[lessU] < sArray[lessU]))
+								|| ((whoToSwap == 1) && (iuArray[moreU] >= 1.0) && (iuArray[lessU] < iArray[lessU]))
+								|| ((whoToSwap == 2) && (ruArray[moreU] >= 1.0) && (ruArray[lessU] < rArray[lessU]))){
+							swap(lessU, moreU, whoToSwap); //allow swap
 						}
 					}
+					// recompute Quu 
+					if (EU.value == 0) measuredQuu = 0;
+					else measuredQuu = EU2/EU.value;
 				}
 				numSteps++;
-
-				// recompute Quu 
-				if (EU.value == 0)
-					measuredQuu = 0;
-				else
-					measuredQuu = EU2/EU.value; // change to measuredEU?
 			}
 		}
 	}
@@ -355,10 +317,8 @@ public class CommunityVaccinated extends JAbstractSimModel {
 		// update display
 		updateCellsGrid();
 		// recompute Quu
-		if (EU.value == 0)
-			measuredQuu = 0;
-		else
-			measuredQuu = EU2/measuredEU;
+		if (EU.value == 0) measuredQuu = 0;
+		else measuredQuu = EU2/measuredEU;
 	}
 	
 	/*
@@ -413,25 +373,17 @@ public class CommunityVaccinated extends JAbstractSimModel {
 	private void clearPop() {
 		// clear arrays
 		for (int i=0; i<numCommunities; i++){
-			uArray[i] = 0;
-			vArray[i] = 0;
-			iArray[i] = 0;
-			rArray[i] = 0;
-			sArray[i] = 0;
-			iuArray[i] = 0;
-			ivArray[i] = 0;
-			ruArray[i] = 0;
-			rvArray[i] = 0;
-			suArray[i] = 0;
-			svArray[i] = 0;
+			uArray[i] = 0; vArray[i] = 0;
+			iArray[i] = 0; rArray[i] = 0; sArray[i] = 0;
+			iuArray[i] = 0; ivArray[i] = 0;
+			ruArray[i] = 0; rvArray[i] = 0;
+			suArray[i] = 0; svArray[i] = 0;
 		}
 		// clear totals
 		totalNumI = 0;
 		totalNumR = 0;
-		EU2 = 0;
-		EI = 0; ES = 0; ER = 0;
-		measuredQuu = 0;
-		measuredEU = 0;
+		EU2 = 0; EI = 0; ES = 0; ER = 0;
+		measuredQuu = 0; measuredEU = 0;
 		// clear grid
 		for (int x=0; x<numCommunities; x++){
 			for (int y=0; y<numPerCommunity; y++){
@@ -519,15 +471,13 @@ public class CommunityVaccinated extends JAbstractSimModel {
 	    				removeSU(targetHouse, 1);
 	    				addIU(targetHouse, 1);
 	    			}
-
 	    			else if (targetState < sArray[targetHouse]/numPerCommunity){
 	    				// infect a susceptible vaccinated
 	    				if (random.nextDouble() < (1.0 - rho.value)){ //successful infection
 	    					removeSV(targetHouse, 1);
 	    					addIV(targetHouse, 1);
 	    				}
-	    			}
-	    			// otherwise failed infection attempt
+	    			} // otherwise failed infection attempt
 	    		}
 	    		else if (eventType == 1){ // recovery
 	    			// choose house of event
@@ -562,7 +512,7 @@ public class CommunityVaccinated extends JAbstractSimModel {
 	    		}
 	    		
 	    	} 
-	    } //end for
+	    }
 	    
 	    // update display
 	    updateCellsGrid();
@@ -574,17 +524,14 @@ public class CommunityVaccinated extends JAbstractSimModel {
 	 * up to 1, then returns an int between 0 and n-1 inclusive,
 	 * where the probability of returning i is p_i 
 	 */
-	private int randvalRescale(int n, double probs[]){
-		double localProbs[] = new double[n];
-		System.arraycopy(probs, 0, localProbs, 0, n);
-		
+	private int randvalRescale(int n, double localProbs[]){		
 		double newProbs[] = new double[n];
 		double d, dSum;
 		double pSum = 0.0;
 		for (int i=0; i<n; i++){ //sum original probs
-			pSum += localProbs[i];}//////////////////////////////////////////
+			pSum += localProbs[i];}
 		for (int j=0; j<n; j++){ // divide by sum to rescale
-			newProbs[j] = localProbs[j]/pSum;///////////////////////////////
+			newProbs[j] = localProbs[j]/pSum;
 		}		
 		d = random.nextDouble(); // dice, between 0 and 1		
 		dSum = 0.0;

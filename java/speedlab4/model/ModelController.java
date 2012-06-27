@@ -15,7 +15,9 @@
  */
 package speedlab4.model;
 
+import android.content.res.Resources;
 import android.util.Log;
+import android.widget.TextView;
 import speedlab4.params.Param;
 import speedlab4.ui.LatticeView;
 import speedlab4.ui.chart.ChartView;
@@ -36,11 +38,13 @@ public class ModelController implements Serializable {
     private Param[] paramsToUpdate;
     public boolean pause = true;
     volatile public boolean run = true;
+    transient private TextView descriptionView;
 //    private double rate;
 
-    public ModelController(LatticeView view, ChartView chartView) {
+    public ModelController(LatticeView view, ChartView chartView, TextView descriptionView) {
         this.latticeView = view;
         this.chartView = chartView;
+        this.descriptionView = descriptionView;
     }
 
     public void setSimModel(AbstractSimModel simModel) {
@@ -49,6 +53,8 @@ public class ModelController implements Serializable {
 
         analyzer = simModel.getAnalyzer();
         chartView.setChart(analyzer.getChartData());
+        
+        descriptionView.setText(simModel.getDescriptionID());
     }
 
     public void setChartView(ChartView chartView) {
@@ -60,13 +66,18 @@ public class ModelController implements Serializable {
         this.latticeView = latticeView;
         latticeView.setSimModel(simModel);
     }
+    
+    public void setDescriptionView(TextView descriptionView){
+    	this.descriptionView = descriptionView;
+    }
 
     /*
      * Called by the Activity in onCreate when the modelController
      * is being pulled from a savedInstanceState
      */
-    public void resetController(AbstractSimModel abstractSimModel, ChartView chartView, LatticeView latticeView) {
+    public void resetController(AbstractSimModel abstractSimModel, ChartView chartView, LatticeView latticeView, TextView descriptionView) {
         setChartView(chartView);
+        setDescriptionView(descriptionView);
         setLatticeView(latticeView);
         setSimModel(abstractSimModel);
     }
@@ -89,7 +100,9 @@ public class ModelController implements Serializable {
 
     public void restart() {
         simModel.restart();
-        next(1);
+        endSimThread();
+        computeLatticeAndUpdate();
+        //next(1);
     }
 
     public void pause() {
@@ -107,7 +120,7 @@ public class ModelController implements Serializable {
      */
     public void destroyModel() {
         if (runningSim != null){
-        	run = false; //
+        	run = false; 
             runningSim.interrupt();
         }
     }
@@ -118,8 +131,7 @@ public class ModelController implements Serializable {
         boolean ran = !pause;
         if (ran) {
             pause();
-            run = false; 
-            runningSim.interrupt();
+            endSimThread();
         }
         // simModel.setParams(params);
 
@@ -148,12 +160,13 @@ public class ModelController implements Serializable {
         runningSim = new Thread("Running Sim Thread") {
             public void run() {
                 while (run) { 
-                    if (paramsToUpdate != null){
-                        simModel.setParams(paramsToUpdate);
-                        paramsToUpdate =null;}
-                    ModelInstance mi = new ModelInstance(simModel.next(1), analyzer.getXPoint(), analyzer.getYPoint());
-                    update(mi);
-                	}
+                	if (paramsToUpdate != null){
+                		simModel.setParams(paramsToUpdate);
+                		paramsToUpdate =null;}
+                	ModelInstance mi = new ModelInstance(simModel.next(1), analyzer.getXPoint(), analyzer.getYPoint());
+                	update(mi);
+                }
+                System.out.println("run over");
             }
         };
         runningSim.start();
@@ -171,6 +184,19 @@ public class ModelController implements Serializable {
         latticeView.addMatrix(mi.lattice);
 
         chartView.addPoint(mi.x, mi.y);
+    }
+    
+    private void endSimThread(){
+    	run = false;
+        runningSim.interrupt();
+        boolean retry = true;
+        while(retry){  // wait for runningSim to terminate
+        	try{
+        		runningSim.join();
+        		retry = false;
+        	}
+        	catch (InterruptedException e){}
+        }
     }
 
     private static String printlattice(double[][] lat){

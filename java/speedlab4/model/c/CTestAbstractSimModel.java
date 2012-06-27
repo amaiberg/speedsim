@@ -14,6 +14,8 @@ import android.content.res.AssetFileDescriptor;
 import android.graphics.Color;
 import android.util.Log;
 import com.speedlab4.R;
+
+import speedlab4.model.State;
 import speedlab4.model.java.JAbstractSimModel;
 import speedlab4.params.Param;
 
@@ -26,7 +28,7 @@ public class CTestAbstractSimModel extends JAbstractSimModel {
 
     //  private double[][] lattice = new double[100][100];
     public CTestAbstractSimModel(int size, Context c, Param... params) {
-        super(size, params);
+        super(size, R.string.ctest, params);
         System.loadLibrary("tools");
         System.loadLibrary("worm_simulation");
         System.loadLibrary("test-sim");
@@ -45,6 +47,12 @@ public class CTestAbstractSimModel extends JAbstractSimModel {
             return Color.rgb(255, (int) ((state - 100) * 2.55), 0);
         else return Color.rgb(0, 0, 80);
     }
+    
+	@Override
+	public State[] getStates(){
+		State[] placeHolder = {new State("temp",Color.WHITE)};
+		return placeHolder;
+	}
 
     @Override
     public double[][] next(double time) {
