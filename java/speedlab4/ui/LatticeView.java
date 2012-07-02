@@ -6,6 +6,7 @@ import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -16,7 +17,6 @@ import speedlab4.model.AbstractSimModel;
 import java.io.Serializable;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 //TODO: Non-hacky fix for drawing first lattice instance without first variable.
 //Probably due to onStart wiping the first screen.
@@ -25,7 +25,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, Serializable {
 
     public float square_size;
-    public BlockingQueue<double[][]> latticeBuffer = new ArrayBlockingQueue<double[][]>(5);////
+    public BlockingQueue<double[][]> latticeBuffer = new ArrayBlockingQueue<double[][]>(1);
     private Paint p;
     private int startx, starty, width = 100, height = 100;
     private AbstractSimModel abstractSimModel;
@@ -57,7 +57,6 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
         latticeBuffer.clear();
         this.abstractSimModel = abstractSimModel;
     }
-
 
     public void setDims(int startx, int starty, int width, int height) {
         this.startx = startx;
@@ -98,11 +97,9 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
                     e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                 }
                 drawLattice(canvas,lastMat);
-
-
     }
 
-    public void drawLattice(Canvas canvas,double[][] lastMat) {
+    private void drawLattice(Canvas canvas,double[][] lastMat) {
 
         square_size = (float) width / (float) lastMat.length;
         // Log.i("lastMat", lastMat.length + "");
@@ -141,7 +138,7 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
         this.setLayoutParams(new FrameLayout.LayoutParams(this.width, this.height));
 
 
-        super.onMeasure(width, height);
+       // super.onMeasure(width, height);
         initializeBackBuffer();
 
     }
@@ -171,13 +168,6 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
     public void surfaceCreated(SurfaceHolder holder) {
         viewThread.setRunning(true);
         viewThread.start();
-        maxframes = 1;
-        // wait for modelController to put array in buffer
-        while (true){
-        	if (latticeBuffer.peek() != null)
-        		break;
-        }
-        viewThread.setDraw(true);
     }
 
 
@@ -233,7 +223,9 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
             }
         }
 
-
+    public void setHandler(Handler h){
+    	viewThread.setHandler(h);
+    }
 
     class SurfaceViewThread extends Thread {
 
@@ -241,6 +233,7 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
         private LatticeView view;
         volatile private boolean run = false;
         volatile private boolean draw = false;
+        private Handler handler;///
 
         public SurfaceViewThread(SurfaceHolder surfaceHolder, LatticeView view) {
             super("Surface View thread");
@@ -255,6 +248,10 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
         public void setDraw(boolean val) {
         	draw = val;
         }
+        
+        public void setHandler(Handler h){
+        	this.handler = h;
+        }
 
         public void run() {
             Canvas c;
@@ -264,6 +261,9 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
             		frames++;
             		// get matrix from queue and draw it on backBuffer
             		view.drawOnCanvas(backCanvas);
+            		if (handler.getLooper() != null){
+            			handler.sendEmptyMessage(1); // tells simThread its ok to update matrix
+            		}
 
             		try {
             			synchronized (surfaceHolder) {

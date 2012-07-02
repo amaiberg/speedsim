@@ -71,6 +71,7 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
     
     public abstract ParamLinkedDouble getParamLinkedDouble(String name, double value, double min, double max, String description, boolean reqRestart);
     
+    
 
 
     public String getName() {

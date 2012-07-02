@@ -42,7 +42,7 @@ public class CommunityVaccinated extends JAbstractSimModel {
 	private final ParamDouble gamma = DP("loss of resistance rate", 0.5, 0, 20);
 	private final ParamLinkedDouble Quu = LDP("Quu", 0.35, 0.0, 1.0);//////////////////
 	private final ParamLinkedDouble EU = LDP("EU", 0.35, 0, 1);
-	private final ParamInteger initInfectedComms = IP("Initial number infected communities", 30, 0, 100, "Init inf comms", true);
+	private final ParamInteger initInfectedComms = IP("Initial percentage communities infected", 30, 0, 100, "Init inf comms", true);
 	private final ParamInteger initInfectedPerComm = IP("Initial infected per community", 20, 0, 100, "Init inf per comm", true);
 	
 	private static final int SUS_UNVACC = 0, SUS_VACC = 1, INFECTED_UNVACC = 2, INFECTED_VACC = 3,
@@ -61,29 +61,25 @@ public class CommunityVaccinated extends JAbstractSimModel {
 		super(100, R.string.VaccCommModel, pd);
 		ParamLinkedDouble.linkGreaterOrEqual(EU, Quu);
 		name = "Vaccinated Communities";
-		numPerCommunity = 100; // lattice size
-		numCommunities = 100;
-		suArray = new double[numCommunities];
-		svArray = new double[numCommunities];
-		iuArray = new double[numCommunities];
-		ivArray = new double[numCommunities];
-		ruArray = new double[numCommunities];
-		rvArray = new double[numCommunities];
-		iArray = new double[numCommunities];
-		uArray = new double[numCommunities];
-		vArray = new double[numCommunities];
-		rArray = new double[numCommunities];
-		sArray = new double[numCommunities];
-		cells = new double[100][100]; // lattice size
+		int size = super.getSize();
+		numPerCommunity = size; 
+		numCommunities = size;
+		suArray = new double[size];
+		svArray = new double[size];
+		iuArray = new double[size];
+		ivArray = new double[size];
+		ruArray = new double[size];
+		rvArray = new double[size];
+		iArray = new double[size];
+		uArray = new double[size];
+		vArray = new double[size];
+		rArray = new double[size];
+		sArray = new double[size];
 		numSteps = 0;
 		maxNumSteps = 10000;
-		numUpdatesPerStep = 100;
 		totalNumI = 0;
 		totalNumR = 0;
 		random = new Random();
-		EX2denom = numCommunities*numPerCommunity*numPerCommunity;
-		EXdenom = numCommunities*numPerCommunity;
-		timestep = -1;
 		analyzer = new CommunityVaccAnalyzer();
 		init();
 	}
@@ -91,7 +87,15 @@ public class CommunityVaccinated extends JAbstractSimModel {
 	@Override
 	protected void init() {
 		ready = false;
-		// First clear pop from previous run
+		timestep = -1;
+		int size = super.getSize();
+		numPerCommunity = size; 
+		numCommunities = size;
+		cells = new double[size][size];
+		numUpdatesPerStep = size;
+		EX2denom = numCommunities*numPerCommunity*numPerCommunity;
+		EXdenom = numCommunities*numPerCommunity;
+		// Clear pop from previous run
 		clearPop();
 		// Fill pop arrays
 		for(int i=0; i<numCommunities; i++){
@@ -102,18 +106,20 @@ public class CommunityVaccinated extends JAbstractSimModel {
 		if (EU.value == 0)
 			measuredQuu = 0;
 		else
-			measuredQuu = EU2/EU.value;
+			measuredQuu = EU2/measuredEU; //EU2/EU.value;
 		
 		// Adjust clustering
 		adjustQuu();
 		
 		// Add infected pop
-		for (int i=0; i < initInfectedComms.value; i++){
+		int numInfComms = (int)(initInfectedComms.value/100.0*numCommunities);
+		int numInfPerComm = (int)(initInfectedPerComm.value/100.0*numPerCommunity);
+		for (int i=0; i < numInfComms; i++){
 			int houseToInfect = random.nextInt(numCommunities);
 			while (iArray[houseToInfect] != 0){ // choose a house that has no infection yet
 				houseToInfect = random.nextInt(numCommunities);
 			}
-			for (int j=0; j < initInfectedPerComm.value; j++){
+			for (int j=0; j < numInfPerComm; j++){
 				// choose whether a vaccinated or unvaccinated will get infected
 				if (random.nextDouble() < suArray[houseToInfect]/(suArray[houseToInfect]+svArray[houseToInfect])){
 					// infect an unvaccinated
@@ -133,10 +139,14 @@ public class CommunityVaccinated extends JAbstractSimModel {
 	
 	@Override
 	public double[][] next(double time) {
+//		if (timestep == -1){
+//			timestep++;
+//			return cells;
+//		}
 		if (ready){
-			if (Math.abs(Quu.value - measuredQuu) > .01){
+			if (Math.abs(Quu.value - measuredQuu) > .001){
 				adjustQuuStep();
-			}
+			} else System.out.println("measured Quu: "+measuredQuu);
 			if (Math.abs(EU.value - measuredEU) > .01){
 				adjustEUstep();
 			}
@@ -251,7 +261,7 @@ public class CommunityVaccinated extends JAbstractSimModel {
 					}
 					// recompute Quu 
 					if (EU.value == 0) measuredQuu = 0;
-					else measuredQuu = EU2/EU.value;
+					else measuredQuu = EU2/measuredEU; //EU2/EU.value
 				}
 				numSteps++;
 			}
@@ -664,10 +674,8 @@ public class CommunityVaccinated extends JAbstractSimModel {
 //		totalNumU -= num;
 		EU2 += uArray[house]*uArray[house]/EX2denom;
 		measuredEU -= num/EXdenom;
-//		if (EU == 0)
-//			measuredQuu = 0;
-//		else
-//			measuredQuu = EU2/EU;
+		if (EU.value == 0) measuredQuu = 0;
+		else measuredQuu = EU2/EU.value;
 	}
 	
 	private void addS(int house, double num){
@@ -708,10 +716,8 @@ public class CommunityVaccinated extends JAbstractSimModel {
 //		totalNumU += num;
 		EU2 += uArray[house]*uArray[house]/EX2denom;
 		measuredEU += num/EXdenom;
-//		if (EU == 0)
-//			measuredQuu = 0;
-//		else
-//			measuredQuu = EU2/EU;
+		if (EU.value == 0) measuredQuu = 0;
+		else measuredQuu = EU2/EU.value;
 	}
 	 
 

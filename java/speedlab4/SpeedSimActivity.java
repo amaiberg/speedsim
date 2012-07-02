@@ -14,13 +14,13 @@ import speedlab4.model.c.CTestAbstractSimModel;
 import speedlab4.model.java.CommunityVaccinated;
 import speedlab4.model.java.DynamicLandscape;
 import speedlab4.model.java.Random;
+import speedlab4.model.java.Vants;
 //import speedlab4.model.scala.SIRS;
 import speedlab4.params.*;
 import speedlab4.ui.LatticeView;
 import speedlab4.ui.LegendAdapter;
 import speedlab4.ui.chart.ChartView;
 
-//TODO: Add models(2 or 3)
 //TODO: intro screen
 //TODO: painting
 //TODO: navigation between lattices - gallery, pre-animation
@@ -64,14 +64,13 @@ public class SpeedSimActivity extends Activity {
         if (saved) {
             prevSim = curSim = (AbstractSimModel) savedInstanceState.get("curSim");
             modelController = (ModelController) savedInstanceState.get("modelController");
-            descriptionView = (TextView) findViewById(R.id.descriptionView);
             modelController.resetController(curSim, chartView, latticeView, descriptionView);
             //      modelController.setSimModel(curSim);
 
         } else {
 
             modelController = new ModelController(latticeView, chartView, descriptionView);
-            curSimID = R.id.dynamic; //default simModel
+            curSimID = R.id.vac; //default simModel
         }
     }
 
@@ -137,6 +136,7 @@ public class SpeedSimActivity extends Activity {
     public void onSaveInstanceState(Bundle bundle) {
         bundle.putSerializable("modelController", modelController);
         bundle.putSerializable("curSim", curSim);
+        //bundle.putParcelable("bitmap", modelController.getBitmap());
         super.onSaveInstanceState(bundle);
 
 
@@ -288,14 +288,21 @@ public class SpeedSimActivity extends Activity {
                 initSim(new Random(Random.State.TEST2, new ParamDouble("Test", 0.5d, 0d, 1d)));
                 curSim.setParams(params);
                 return true;
-            default:
-                initSim(new Random(Random.State.INTRO, new ParamDouble("Test", 0.5d, 0d, 1d)));
+            case R.id.vants:
+                initSim(new Vants());
+                curSim.setParams(params);
                 return true;
+            default:
+            	return false;
+                //initSim(new Random(Random.State.INTRO, new ParamDouble("Test", 0.5d, 0d, 1d)));
+                //return true;
         }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+		if (!modelController.pause)
+			pauseModel(strtBtn);
         return runSim(item.getItemId());
 
     }

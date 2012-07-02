@@ -14,7 +14,7 @@ public class ModelInstance {
     public double[] y;
 
     public ModelInstance(double[][] lattice, double x, double[] y) {
-        this.lattice = lattice;
+    	this.lattice = lattice;
         this.x = x;
         this.y = y;
 

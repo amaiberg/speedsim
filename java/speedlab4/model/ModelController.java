@@ -16,6 +16,10 @@
 package speedlab4.model;
 
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 import android.widget.TextView;
 import speedlab4.params.Param;
@@ -34,7 +38,7 @@ public class ModelController implements Serializable {
     public AbstractSimModel simModel;
     transient private ChartView chartView;
     private AbstractAnalyzer analyzer;
-    transient private Thread runningSim; 
+    transient private SimThread runningSim;
     private Param[] paramsToUpdate;
     public boolean pause = true;
     volatile public boolean run = true;
@@ -50,6 +54,7 @@ public class ModelController implements Serializable {
     public void setSimModel(AbstractSimModel simModel) {
         this.simModel = simModel;
         latticeView.setSimModel(simModel);
+        next(1); //repaint lattice 
 
         analyzer = simModel.getAnalyzer();
         chartView.setChart(analyzer.getChartData());
@@ -79,7 +84,8 @@ public class ModelController implements Serializable {
         setChartView(chartView);
         setDescriptionView(descriptionView);
         setLatticeView(latticeView);
-        setSimModel(abstractSimModel);
+        //latticeView.restoreBitmap(savedBitmap);
+        //setSimModel(abstractSimModel);
     }
 
 
@@ -101,8 +107,9 @@ public class ModelController implements Serializable {
     public void restart() {
         simModel.restart();
         endSimThread();
+        latticeView.flush();
         computeLatticeAndUpdate();
-        //next(1);
+        next(1);
     }
 
     public void pause() {
@@ -113,16 +120,14 @@ public class ModelController implements Serializable {
     public void resume() {
         latticeView.resume();
         pause = false;
+        if (runningSim == null) computeLatticeAndUpdate();
     }
 
     /*
      * Called by Activity's onDestroy method
      */
     public void destroyModel() {
-        if (runningSim != null){
-        	run = false; 
-            runningSim.interrupt();
-        }
+        if (runningSim != null) endSimThread();
     }
 
 
@@ -136,13 +141,16 @@ public class ModelController implements Serializable {
         // simModel.setParams(params);
 
         if (restart) {
+        	if (runningSim != null) endSimThread();
             latticeView.flush();
             simModel.restart();
         }
         if (ran) {
             resume();
-            computeLatticeAndUpdate(); 
-        } else if (restart) next(1);
+        } else if (restart){ 
+        	if (!ran) computeLatticeAndUpdate();//make new sim thread
+        	next(1);
+        }
     }
 
     public void setParams(Param... params) {
@@ -157,20 +165,42 @@ public class ModelController implements Serializable {
 
     public void computeLatticeAndUpdate() {
     	run = true;
-        runningSim = new Thread("Running Sim Thread") {
-            public void run() {
-                while (run) { 
-                	if (paramsToUpdate != null){
-                		simModel.setParams(paramsToUpdate);
-                		paramsToUpdate =null;}
-                	ModelInstance mi = new ModelInstance(simModel.next(1), analyzer.getXPoint(), analyzer.getYPoint());
-                	update(mi);
-                }
-                System.out.println("run over");
-            }
-        };
+    	runningSim = new SimThread();
         runningSim.start();
-
+    }
+    
+    class SimThread extends Thread{
+        Handler handler;
+        
+        public SimThread(){
+        	super("Running Sim Thread");
+        }
+        
+        public Handler getHandler(){
+        	return handler;
+        }
+        
+    	public void run() {
+    		if (handler == null){
+    			Looper.prepare();
+    			handler = new Handler(){
+    				public void handleMessage(Message m){
+    					if (run){
+    						if (paramsToUpdate != null){
+    							simModel.setParams(paramsToUpdate);
+    							paramsToUpdate =null;}
+    						ModelInstance mi = new ModelInstance(simModel.next(1), analyzer.getXPoint(), analyzer.getYPoint());
+    						update(mi);
+    					}
+    					else Looper.myLooper().quit();
+    				}
+    			};
+    			latticeView.setHandler(handler);
+				ModelInstance mi = new ModelInstance(simModel.first(), analyzer.getXPoint(), analyzer.getYPoint());
+				update(mi);
+    			Looper.loop();
+    		}
+        }
     }
 
     public void setRate(double rate) {
@@ -188,6 +218,7 @@ public class ModelController implements Serializable {
     
     private void endSimThread(){
     	run = false;
+    	runningSim.getHandler().sendEmptyMessage(0); // kill pill
         runningSim.interrupt();
         boolean retry = true;
         while(retry){  // wait for runningSim to terminate
@@ -197,6 +228,7 @@ public class ModelController implements Serializable {
         	}
         	catch (InterruptedException e){}
         }
+        runningSim = null; // throw away reference to dead thread
     }
 
     private static String printlattice(double[][] lat){

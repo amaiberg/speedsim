@@ -48,20 +48,21 @@ public class DynamicLandscape extends JAbstractSimModel {
 		super(100, R.string.DynamicLandModel, pd);
 		name = "Dynamic Landscape";
 		int size = super.getSize();
-		numUpdatesPerStep = size*size/8;
-		cells = new double[size][size];
-		occGrid = new int[size][size];
 		occX = new int[size*size];
 		occY = new int[size*size];
 		unsuitableX = new int[size*size];
 		unsuitableY = new int[size*size];
 		random = new Random();
-		analyzer = new DynamicLandscapeAnalyzer();
 		init();
 	}
 
 	@Override
 	protected void init() {
+		analyzer = new DynamicLandscapeAnalyzer();
+		int size = super.getSize();
+		cells = new double[size][size];
+		occGrid = new int[size][size];
+		numUpdatesPerStep = size*size/8;
 		initLandscape();
 		initPop();
 	}

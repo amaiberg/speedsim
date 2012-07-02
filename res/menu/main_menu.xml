@@ -22,6 +22,8 @@
                   android:title="Intro"/>
             <item android:id="@+id/random2"
                   android:title="Random2"/>
+            <item android:id="@+id/vants"
+                  android:title="Vants"/>
         </menu>
     </item>
 
