@@ -6,9 +6,10 @@
  
 <TextView android:id="@+id/legendColor"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_height="20dp"
     android:height="20dp"
     android:width="20dp"
+    android:text="."
     android:background="#fffff0"
     android:paddingRight="5dp"
     android:gravity="fill_vertical">
@@ -16,7 +17,7 @@
     
 <TextView android:id="@+id/legendKey"
     android:layout_width="wrap_content"
-    android:layout_height="20dp"
+    android:layout_height="wrap_content"
     android:textSize="14sp"
     android:paddingLeft="5dp"
     android:gravity="center_vertical">

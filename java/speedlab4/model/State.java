@@ -9,9 +9,11 @@ public class State implements Serializable{
 	
 	public String stateName;
 	public int stateColor;
+	public int constant;
 	
-	public State(String name, int color){
+	public State(String name, int color, int constant){
 		stateName = name;
 		stateColor = color;
+		this.constant = constant;
 	}
 }

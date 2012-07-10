@@ -1,9 +1,11 @@
 package speedlab4.model;
 
+import android.graphics.Point;
 import android.util.Log;
 import speedlab4.params.*;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -27,6 +29,7 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
     protected Map<Integer, Integer> colorMap;
     protected AbstractAnalyzer analyzer;
     protected String name;
+    protected State currentDrawingState;
     protected I latticeSize;
     protected int descriptionResID; // string resource id for description view
       //test
@@ -34,6 +37,7 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
 
         this.latticeSize = getParamInteger(latticeSize, "Lattice Size", 50, 100, "Size N of the NxN simulation grid", true);
         this.descriptionResID = descripResID;
+        currentDrawingState = getStates()[0];
         System.out.println(this.latticeSize.value + "");
         Log.i("lvalue??", "=" + this.latticeSize.value);
         iParams.put(this.latticeSize.name, this.latticeSize);
@@ -57,6 +61,9 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
 
     //return color of cell given state
     public abstract int getColor(int state);
+    
+    //set the cells at the given coordinates to the given state
+    public abstract void setCell(Point point, State state);
 
     //return first lattice instance
     public abstract double[][] first();
@@ -70,8 +77,6 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
     public abstract D getParamDouble(String name, double value, double min, double max, String description, boolean reqRestart);
     
     public abstract ParamLinkedDouble getParamLinkedDouble(String name, double value, double min, double max, String description, boolean reqRestart);
-    
-    
 
 
     public String getName() {
@@ -132,7 +137,7 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
     }
 
 
-    protected int getSize() {
+    public int getSize() {///protected
         return this.latticeSize.value;
     }
 

@@ -2,21 +2,34 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:app="http://schemas.android.com/apk/res/com.speedlab4"
               android:id="@+id/main"
-              android:orientation="vertical" android:layout_width="fill_parent"
+              android:orientation="vertical"
+              android:layout_width="fill_parent"
               android:layout_height="fill_parent"
 
         >
-    <LinearLayout
+    <!--  LinearLayout
             android:orientation="vertical"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal">
-           <!-- android:layout_weight=".4" -->
-    <include  layout="@layout/lattice_layout" android:layout_width="fill_parent" android:layout_height="wrap_content" />
-    </LinearLayout>
+            android:gravity="center_horizontal"
+            android:layout_weight="0" -->
+            
+    <include layout="@layout/quick_options"
+        android:id="@+id/options_bar"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        />
+        
+    <include  layout="@layout/lattice_flipper"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        />
+    <!--  /LinearLayout -->
+    
 
-    <include  layout="@layout/quick_options" android:layout_width="fill_parent" android:layout_height="wrap_content"  />
+    
+    <!--  include  layout="@layout/lattice_flipper" android:layout_width="fill_parent" android:layout_height="wrap_content"  / -->
 
-    <include layout="@layout/lattice_flipper" android:layout_width="fill_parent" android:layout_height="wrap_content"/>
+
 
 </LinearLayout>

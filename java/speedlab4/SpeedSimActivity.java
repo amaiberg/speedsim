@@ -17,6 +17,7 @@ import speedlab4.model.java.Random;
 import speedlab4.model.java.Vants;
 //import speedlab4.model.scala.SIRS;
 import speedlab4.params.*;
+import speedlab4.ui.DrawStatesAdapter;
 import speedlab4.ui.LatticeView;
 import speedlab4.ui.LegendAdapter;
 import speedlab4.ui.chart.ChartView;
@@ -50,6 +51,7 @@ public class SpeedSimActivity extends Activity {
         LatticeView latticeView = (LatticeView) findViewById(R.id.popview);
 
         ChartView chartView = (ChartView) findViewById(R.id.chartView);
+        LinearLayout brushView = (LinearLayout) findViewById(R.id.brushview);
         flipper = (ViewFlipper) findViewById(R.id.view_flipper);
         paramGrid = (GridView) findViewById(R.id.param_grid);
         TextView descriptionView = (TextView) findViewById(R.id.descriptionView);
@@ -64,13 +66,13 @@ public class SpeedSimActivity extends Activity {
         if (saved) {
             prevSim = curSim = (AbstractSimModel) savedInstanceState.get("curSim");
             modelController = (ModelController) savedInstanceState.get("modelController");
-            modelController.resetController(curSim, chartView, latticeView, descriptionView);
+            modelController.resetController(curSim, chartView, latticeView, descriptionView, brushView);
             //      modelController.setSimModel(curSim);
 
         } else {
 
-            modelController = new ModelController(latticeView, chartView, descriptionView);
-            curSimID = R.id.vac; //default simModel
+            modelController = new ModelController(latticeView, chartView, descriptionView, brushView);
+            curSimID = R.id.vants; //default simModel
         }
     }
 
@@ -177,6 +179,7 @@ public class SpeedSimActivity extends Activity {
     }
 
     public void reset(View view){
+    	if (!modelController.pause) pauseModel(strtBtn);
         runSim(curSimID);
 
     }
@@ -209,6 +212,7 @@ public class SpeedSimActivity extends Activity {
     }
 
     public void restartModel(View view) {
+    	if (!modelController.pause) pauseModel(strtBtn);
     	modelController.restart();
         //curSim.restart();
         //modelController.execute();
@@ -329,6 +333,11 @@ public class SpeedSimActivity extends Activity {
     	GridView legendGrid = (GridView)findViewById(R.id.legend_grid);
     	LegendAdapter lAdapter = new LegendAdapter(thisContext, curSim.getStates());
     	legendGrid.setAdapter(lAdapter);
+    	
+    	// set up drawing view
+    	GridView drawStateGrid = (GridView)findViewById(R.id.drawState_grid);
+    	DrawStatesAdapter dAdapter = new DrawStatesAdapter(thisContext, modelController.getBrushController(), curSim.getStates());
+    	drawStateGrid.setAdapter(dAdapter);
 
     }
 

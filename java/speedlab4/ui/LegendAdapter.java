@@ -53,6 +53,7 @@ public class LegendAdapter extends BaseAdapter {
 		String name = thisState.stateName;
 		Integer color = thisState.stateColor;
 		holder.title.setText(name);
+		holder.colorSwatch.setTextColor(color);
 		if (color == Color.BLACK) // because background is black, need border
 			holder.colorSwatch.setBackgroundResource(R.drawable.blacksquare);
 		else

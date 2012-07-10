@@ -2,25 +2,24 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="fill_parent"
     android:orientation="vertical"
     android:padding="10dp" >
               
     <TextView android:id="@+id/descriptionView"
-        	android:text="@string/DynamicLandModel"
-        	android:layout_width="fill_parent"
+        	android:text="Blah blah"
+        	android:layout_width="wrap_content"
         	android:layout_height="wrap_content"
-        	android:singleLine="false"
-        	android:maxLines="50"
-        	android:scrollHorizontally="false"/>
+        	android:gravity="top" />
     
-       <GridView android:id="@+id/legend_grid"
+     <GridView android:id="@+id/legend_grid"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
+            android:paddingTop="10dp"
 			android:columnWidth="200dp"
             android:numColumns="auto_fit"
             android:verticalSpacing="10dp"
-            android:horizontalSpacing="5dp"
+            android:horizontalSpacing="10dp"
             android:stretchMode="columnWidth"
             android:gravity="bottom"
             />

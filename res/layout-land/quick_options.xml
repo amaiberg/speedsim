@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_height="wrap_content"
-              android:layout_width="fill_parent" android:orientation="vertical">
+              android:layout_width="wrap_content" android:orientation="vertical"
+              android:paddingRight="15dp">
 
 
 
-    <LinearLayout android:layout_height="wrap_content"
+    <!-- <LinearLayout android:layout_height="wrap_content"
                   android:layout_width="wrap_content" android:orientation="horizontal"
-            	  android:layout_gravity="center_horizontal">
+            	  android:layout_gravity="center_horizontal">  -->
 
        <!--  Button
                 android:id="@+id/restrtBtn"
@@ -19,41 +20,38 @@
         <Button
                 android:id="@+id/strtBtn"
                 android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
+                android:layout_width="fill_parent"
+                android:layout_gravity="center_horizontal"
                 android:text="@string/startBtnTxt"
                 android:onClick="pauseModel"
 
                 />
         <Button android:id="@+id/nxtBtn"
                 android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
+                android:layout_width="fill_parent"
+                android:layout_gravity="center_horizontal"
                 android:text="Next"
                 />
+        
+     <!-- </LinearLayout>  -->
 
         <Button android:id="@+id/floating_button"
-                android:layout_width="wrap_content"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
                 android:text="Switch View"
                 android:onClick="flipView"/>
-        
-     </LinearLayout>
- 
-     <LinearLayout android:layout_height="wrap_content"
-                  android:layout_width="wrap_content" android:orientation="horizontal"
-                  android:layout_gravity="center_horizontal">
-                  
          <Button android:id="@+id/reset"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
                 android:text="Reset Defaults"
                 android:onClick="reset"/>
-         
         <Button android:id="@+id/restartBtn"
-                android:layout_width="wrap_content"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
                 android:text="Restart"
                 android:onClick="restartModel"/>
-        
-    </LinearLayout>
     
 </LinearLayout>

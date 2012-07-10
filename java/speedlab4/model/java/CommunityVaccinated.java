@@ -1,6 +1,7 @@
 package speedlab4.model.java;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -12,6 +13,7 @@ import org.achartengine.renderer.BasicStroke;
 import com.speedlab4.R;
 
 import android.graphics.Color;
+import android.graphics.Point;
 
 import speedlab4.model.AbstractAnalyzer;
 import speedlab4.model.State;
@@ -48,12 +50,12 @@ public class CommunityVaccinated extends JAbstractSimModel {
 	private static final int SUS_UNVACC = 0, SUS_VACC = 1, INFECTED_UNVACC = 2, INFECTED_VACC = 3,
 			RESISTANT_UNVACC = 4, RESISTANT_VACC = 5;
 
-	private static final State[] states= {new State("Susceptible Unvaccinated",Color.BLACK),
-		new State("Susceptible Vaccinated",Color.GREEN),
-		new State("Infected Unvaccinated",Color.RED),
-		new State("Infected Vaccinated",Color.MAGENTA),
-		new State("Resistant Unvaccinated",Color.BLUE),
-		new State("Resistant Vaccinated",Color.CYAN),
+	private static final State[] states= {new State("Susceptible Unvaccinated",Color.BLACK, 0),
+		new State("Susceptible Vaccinated",Color.GREEN, 1),
+		new State("Infected Unvaccinated",Color.RED, 2),
+		new State("Infected Vaccinated",Color.MAGENTA, 3),
+		new State("Resistant Unvaccinated",Color.BLUE, 4),
+		new State("Resistant Vaccinated",Color.CYAN, 5),
 	};
 	
 	
@@ -164,6 +166,11 @@ public class CommunityVaccinated extends JAbstractSimModel {
 	public State[] getStates(){
 		return states;
 	}
+	
+	@Override
+    public void setCell(Point point, State state){
+    	
+    }
 
 	@Override
 	public double[][] first() {

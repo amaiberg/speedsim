@@ -1,0 +1,84 @@
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/brushview"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:padding="10dp" >
+              
+    <TextView android:id="@+id/drawingMode"
+        	android:text="Drawing Mode:"
+        	android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:textSize="20sp"
+        	android:paddingBottom="10dp"
+        	android:gravity="top" />
+    
+     <GridView android:id="@+id/drawState_grid"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+			android:columnWidth="150dp"
+            android:numColumns="auto_fit"
+            android:verticalSpacing="10dp"
+            android:horizontalSpacing="10dp"
+            android:stretchMode="columnWidth"
+            android:gravity="bottom"
+            />
+     
+	<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+     	android:layout_width="fill_parent"
+    	android:layout_height="fill_parent">
+     <RelativeLayout
+         android:layout_width="fill_parent"
+         android:layout_height="wrap_content"
+         android:orientation="horizontal"
+         android:paddingTop="15dp" >
+                  
+        <TextView android:id="@+id/brushSize"
+            	  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="Brush Size: 1"
+                  android:textSize="20sp"
+                  android:paddingRight="10dp"
+                  android:layout_alignParentLeft="true"/>
+        
+     	<RelativeLayout  android:id="@+id/brushSizeSelector"
+         		  android:layout_height="wrap_content"
+                  android:layout_width="fill_parent"
+                  android:layout_toRightOf="@id/brushSize" >                  
+        	<android.widget.SeekBar
+                android:id="@+id/brushSizeBar"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:soundEffectsEnabled="true"
+                android:progress="0"
+                android:max="19"/>
+        	<TextView android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="1"
+                  android:layout_below="@id/brushSizeBar"
+                  android:layout_alignParentLeft="true"/>
+        	<TextView android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="10"
+                  android:layout_below="@id/brushSizeBar"
+                  android:layout_centerHorizontal="true"/>
+        	<TextView android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="20"
+                  android:layout_below="@id/brushSizeBar"
+                  android:layout_alignParentRight="true"/>
+    	</RelativeLayout>
+    	
+     	<TextView android:id="@+id/brushTip"
+     	    android:layout_width="wrap_content"
+     	    android:layout_height="wrap_content"
+     	    android:paddingTop="10dp"
+     	    android:paddingLeft="10dp"
+     	    android:layout_below="@id/brushSizeSelector"
+     	    android:layout_alignParentLeft="true"/>
+    	
+    </RelativeLayout>
+	</ScrollView>
+	
+</LinearLayout>

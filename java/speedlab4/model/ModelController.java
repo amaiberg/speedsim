@@ -17,16 +17,20 @@ package speedlab4.model;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import speedlab4.params.Param;
 import speedlab4.ui.LatticeView;
 import speedlab4.ui.chart.ChartView;
+import speedlab4.ui.listeners.DrawingListener;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 /**
  * Scatter demo chart.
@@ -43,16 +47,19 @@ public class ModelController implements Serializable {
     public boolean pause = true;
     volatile public boolean run = true;
     transient private TextView descriptionView;
+    transient private BrushController drawController;
 //    private double rate;
 
-    public ModelController(LatticeView view, ChartView chartView, TextView descriptionView) {
+    public ModelController(LatticeView view, ChartView chartView, TextView descriptionView, LinearLayout brushView) {
         this.latticeView = view;
         this.chartView = chartView;
         this.descriptionView = descriptionView;
+        this.drawController = new BrushController(latticeView, brushView);
     }
 
     public void setSimModel(AbstractSimModel simModel) {
         this.simModel = simModel;
+        drawController.setSimModel(simModel);
         latticeView.setSimModel(simModel);
         next(1); //repaint lattice 
 
@@ -67,7 +74,7 @@ public class ModelController implements Serializable {
     }
 
 
-    public void setLatticeView(LatticeView latticeView) {
+    private void setLatticeView(LatticeView latticeView) {
         this.latticeView = latticeView;
         latticeView.setSimModel(simModel);
     }
@@ -80,14 +87,19 @@ public class ModelController implements Serializable {
      * Called by the Activity in onCreate when the modelController
      * is being pulled from a savedInstanceState
      */
-    public void resetController(AbstractSimModel abstractSimModel, ChartView chartView, LatticeView latticeView, TextView descriptionView) {
+    public void resetController(AbstractSimModel abstractSimModel, ChartView chartView, LatticeView latticeView,
+    		TextView descriptionView, LinearLayout brushView) {
         setChartView(chartView);
         setDescriptionView(descriptionView);
         setLatticeView(latticeView);
+        this.drawController = new BrushController(latticeView, brushView);
         //latticeView.restoreBitmap(savedBitmap);
         //setSimModel(abstractSimModel);
     }
-
+    
+    public BrushController getBrushController(){
+    	return this.drawController;
+    }
 
     public void execute() {
         computeLatticeAndUpdate();
@@ -101,9 +113,12 @@ public class ModelController implements Serializable {
     	pause();
         latticeView.stop();
         run = false;
-        runningSim.interrupt();
+        if (runningSim != null) runningSim.interrupt();
     }
 
+    /*
+     * Called when the Restart button is clicked
+     */
     public void restart() {
         simModel.restart();
         endSimThread();
@@ -160,7 +175,7 @@ public class ModelController implements Serializable {
 
     public void next(int maxFrames) {
         if(pause)
-            latticeView.resume(maxFrames);
+            latticeView.resume(maxFrames, true);
     }
 
     public void computeLatticeAndUpdate() {
@@ -218,17 +233,19 @@ public class ModelController implements Serializable {
     
     private void endSimThread(){
     	run = false;
-    	runningSim.getHandler().sendEmptyMessage(0); // kill pill
-        runningSim.interrupt();
-        boolean retry = true;
-        while(retry){  // wait for runningSim to terminate
-        	try{
-        		runningSim.join();
-        		retry = false;
-        	}
-        	catch (InterruptedException e){}
-        }
-        runningSim = null; // throw away reference to dead thread
+    	if (runningSim != null){
+    		runningSim.getHandler().sendEmptyMessage(0); // kill pill
+    		runningSim.interrupt();
+    		boolean retry = true;
+    		while(retry){  // wait for runningSim to terminate
+    			try{
+    				runningSim.join();
+    				retry = false;
+    			}
+    			catch (InterruptedException e){}
+    		}
+    		runningSim = null; // throw away reference to dead thread
+    	}
     }
 
     private static String printlattice(double[][] lat){

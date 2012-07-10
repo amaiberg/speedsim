@@ -30,8 +30,8 @@
         specified \'regrowth rate\'. </string>
     <string name="VantsModel"><b>Vants\n\n</b>In a world consisting only of black and white tiles, there exist two types of
         creatures: Vants (virtual ants) and Antivants. At each time step a Vant steps forward onto a new tile and then makes a
-        decision according to two simple rules:\n    If the new tile is white, the Vant colors the tile black and
-        turns 90 degrees to the right.\n    If the new tile is black, the Vant colors the tile white and turns 90 degrees
+        decision according to two simple rules:\nIf the new tile is white, the Vant colors the tile black and
+        turns 90 degrees to the right.\nIf the new tile is black, the Vant colors the tile white and turns 90 degrees
         to the left.\nAntivants follow the same rules, except that they turn left instead of right and vice versa. This model
         demonstrates how very simple deterministic rules can result in extremely complex behavior.</string>
     <string name="RandomModel">Random model</string>
