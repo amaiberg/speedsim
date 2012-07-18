@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ViewSwitcher xmlns:android="http://schemas.android.com/apk/res/android"
+    	android:id="@+id/thumb_1"
+        android:inAnimation="@anim/turning_toward"
+        android:outAnimation="@anim/turning_away"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:gravity="center_horizontal"
+        android:padding="5dp"
+        android:layout_height="wrap_content"/>
+
+
+
+
+
+
+
+<!--  <?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:padding="20dp"
+    android:orientation="vertical" >
+    
+    <ImageView android:id="@+id/lattice_thumb"
+        	android:layout_width="fill_parent"
+        	android:layout_height="wrap_content"
+        	android:adjustViewBounds="true"
+        	android:gravity="center_horizontal" /> 
+    
+    <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/thumb_descrip"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"/>
+    
+
+</LinearLayout> -->

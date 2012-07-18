@@ -1,59 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_height="wrap_content"
-              android:layout_width="fill_parent" android:orientation="vertical">
 
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="wrap_content"
+    android:layout_width="fill_parent"
+    android:orientation="horizontal">
 
-
-    <LinearLayout android:layout_height="wrap_content"
-                  android:layout_width="wrap_content" android:orientation="horizontal"
-            	  android:layout_gravity="center_horizontal">
-
-       <!--  Button
-                android:id="@+id/restrtBtn"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:text="@string/restartBtnTxt"
-                android:onClick="restartModel"
-
-                / -->
+        <ImageButton android:id="@+id/leftArrow"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:src="@drawable/leftarrow" 
+            android:gravity="left"
+            android:onClick="flipBackView"/>
+        
         <Button
                 android:id="@+id/strtBtn"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:text="@string/startBtnTxt"
                 android:onClick="pauseModel"
-
-                />
-        <Button android:id="@+id/nxtBtn"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:text="Next"
-                />
-
-        <Button android:id="@+id/floating_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Switch View"
-                android:onClick="flipView"/>
+                android:layout_weight="1"/>
         
-     </LinearLayout>
- 
-     <LinearLayout android:layout_height="wrap_content"
-                  android:layout_width="wrap_content" android:orientation="horizontal"
-                  android:layout_gravity="center_horizontal">
-                  
-         <Button android:id="@+id/reset"
+        <Button android:id="@+id/reset"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Reset Defaults"
+                android:layout_weight="1"
                 android:onClick="reset"/>
-         
-        <Button android:id="@+id/restartBtn"
+
+        <!--  <Button android:id="@+id/floating_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Restart"
-                android:onClick="restartModel"/>
+                android:text="Switch View"
+                android:onClick="flipView"/> -->
         
-    </LinearLayout>
-    
+        <ImageButton android:id="@+id/rightArrow"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:gravity="left"
+            android:src="@drawable/rightarrow"
+            android:onClick="flipView" />
+
 </LinearLayout>

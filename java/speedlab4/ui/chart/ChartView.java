@@ -5,7 +5,7 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import java.io.Serializable;
+import org.achartengine.model.XYMultipleSeriesDataset;
 
 /**
  * Created by IntelliJ IDEA.
@@ -14,23 +14,22 @@ import java.io.Serializable;
  * Time: 3:23 PM
  * To change this template use File | Settings | File Templates.
  */
-public class ChartView extends FrameLayout implements Serializable {
+public class ChartView extends FrameLayout{
 
     private View curChart;
     private ChartController chartController;
-    private int count = 0;
 
     public ChartView(Context context) {
         super(context);
         chartController = new ChartController();
-        curChart = chartController.createChart(context, ChartData.dummyChartData());
+        curChart = chartController.createChart(context, ChartData.dummyChartData(), null, false);
         this.addView(curChart);
     }
 
     public ChartView(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
         chartController = new ChartController();
-        curChart = chartController.createChart(context, ChartData.dummyChartData());
+        curChart = chartController.createChart(context, ChartData.dummyChartData(), null, false);
         this.addView(curChart);
         //     chartController.draw(1);
     }
@@ -38,10 +37,28 @@ public class ChartView extends FrameLayout implements Serializable {
     public void setChart(ChartData cData) {
         this.removeView(curChart);
         chartController = new ChartController();
-        curChart = chartController.createChart(this.getContext(), cData);
+        curChart = chartController.createChart(this.getContext(), cData, null, true);
         this.addView(curChart);
         //   chartController.draw(1);
-
+    }
+    
+    public void setSavedChart(ChartData cData, XYMultipleSeriesDataset savedData){
+    	 this.removeView(curChart);
+         chartController = new ChartController();
+         curChart = chartController.createChart(this.getContext(), cData, savedData, true);
+         this.addView(curChart);
+    }
+    
+    public XYMultipleSeriesDataset getDataSet(){
+    	return chartController.getDataSet();
+    }
+    
+    public void restart(ChartData c){
+    	setChart(c);
+    }
+    
+    public void destroyChart(){
+    	chartController.endChartDrawThread();
     }
 
     public void addPoint(double x, double[] y) {

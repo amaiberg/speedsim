@@ -53,7 +53,7 @@ public abstract class AbstractDemoChart implements IDemoChart {
         int length = numPlots;
         for (int i = 0; i < length; i++) {
             XYSeries series = new XYSeries(titles[i], scale);
-            Log.wtf("xValues", xValues + "");
+            //Log.wtf("xValues", xValues + "");
             double[] xV = xValues.get(i);
             double[] yV = yValues.get(i);
             int seriesLength = xV.length;

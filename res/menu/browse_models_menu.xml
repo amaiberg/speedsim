@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/selectModel"
+          android:icon="@drawable/ic_menu_smalltiles"
+          android:title="@string/selectModel">
+          <menu>
+            <item android:id="@+id/disp"
+                  android:title="@string/disp"/>
+            <item android:id="@+id/sirs"
+                  android:title="@string/sirs"/>
+            <item android:id="@+id/vac"
+                  android:title="@string/vac"/>
+            <item android:id="@+id/dynamic"
+                  android:title="@string/dynamic"/>
+            <item android:id="@+id/ctest"
+                  android:title="@string/ctest"/>
+            <item android:id="@+id/frog"
+                  android:title="@string/frog"/>
+            <item android:id="@+id/random"
+                  android:title="@string/random"/>
+            <item android:id="@+id/intro"
+                  android:title="Intro"/>
+            <item android:id="@+id/random2"
+                  android:title="Random2"/>
+            <item android:id="@+id/vants"
+                  android:title="Vants"/>
+        </menu>
+    </item>
+    <item android:id="@+id/aboutThisApp"
+          android:icon="@drawable/ic_menu_light"
+          android:title="@string/aboutThisApp">
+    </item>
+</menu>

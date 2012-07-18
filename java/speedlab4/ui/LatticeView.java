@@ -95,6 +95,22 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
     public void setCurrentMatrixCell(int x, int y, double val){
     	currentMatrix[x][y] = val;
     }
+    
+    /*
+     * Sets the current underlying matrix of the lattice to the
+     * given value.
+     */
+    public void setCurrentMatrix(double[][] matrix){
+    	this.currentMatrix = matrix;
+    }
+    
+    /*
+     * Returns the matrix that corresponds to the lattice currently
+     * displayed on the screen.
+     */
+    public double[][] getCurrentMatrix(){
+    	return this.currentMatrix;
+    }
 
     @Override
     public void onAnimationStart() {
@@ -200,8 +216,11 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
      * Called by system when surface is first created
      */
     public void surfaceCreated(SurfaceHolder holder) {
+    	if (viewThread == null)
+    		viewThread = new SurfaceViewThread(getHolder(), this);
         viewThread.setRunning(true);
-        if (!viewThread.isAlive()) viewThread.start();
+        if (!viewThread.isAlive())
+        	viewThread.start();
     }
 
 
@@ -210,25 +229,30 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
      * Called by stop(), which is called when the Activity's onStop() is called
      */
     public void surfaceDestroyed(SurfaceHolder holder) {
-        boolean retry = true;
-        viewThread.setRunning(false);
-        while (retry) {
-            try {
-            	// Blocks this thread (main thread) until viewThread dies.
-                viewThread.join();
-                retry = false;
-            } catch (InterruptedException e) {
-                // we will try it again and again...
-            }
-        }
+    	if (viewThread != null){
+    		boolean retry = true;
+    		viewThread.setRunning(false);
+    		viewThread.interrupt();
+    		while (retry) {
+    			try {
+    				// Blocks this thread (main thread) until viewThread dies.
+    				viewThread.join();
+    				retry = false;
+    			} catch (InterruptedException e) {
+    				// we will try it again and again...
+    			}
+    		}
+    		viewThread = null;
+    	}
     }
 
     /*
      * Called when Activity's onStop() called
      */
     public void stop() {
-        surfaceDestroyed(getHolder());
-        viewThread.interrupt();
+        //surfaceDestroyed(getHolder());
+        //viewThread.interrupt();
+    	surfaceDestroyed(getHolder());
     }
 
     public void setRate(double rate){
@@ -256,6 +280,8 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
     }
 
     public void resume(int maxframes, boolean drawNext){
+    	if (viewThread == null)
+    		viewThread = new SurfaceViewThread(getHolder(), this);
     	if(maxframes != -1){
     		this.frames =0;
     		this.maxframes = maxframes;

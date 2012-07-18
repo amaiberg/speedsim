@@ -141,7 +141,7 @@ public class Random extends JAbstractSimModel {
     }
     
 	@Override
-    public void setCell(Point point, speedlab4.model.State state){
+    public void setCell(int x, int y, speedlab4.model.State state){
     	
     }
 

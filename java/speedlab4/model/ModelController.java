@@ -32,11 +32,12 @@ import speedlab4.ui.listeners.DrawingListener;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import org.achartengine.model.XYMultipleSeriesDataset;
+
 /**
  * Scatter demo chart.
  */
 public class ModelController implements Serializable {
-
 
     transient public LatticeView latticeView;
     public AbstractSimModel simModel;
@@ -57,16 +58,20 @@ public class ModelController implements Serializable {
         this.drawController = new BrushController(latticeView, brushView);
     }
 
-    public void setSimModel(AbstractSimModel simModel) {
+    public void setSimModel(AbstractSimModel simModel, boolean saved) {
         this.simModel = simModel;
-        drawController.setSimModel(simModel);
         latticeView.setSimModel(simModel);
-        next(1); //repaint lattice 
+        if (saved)
+        	latticeView.resume(1, false); //draw current, not next step
+        else
+        	next(1); //repaint next step in lattice 
 
         analyzer = simModel.getAnalyzer();
-        chartView.setChart(analyzer.getChartData());
+        if (!saved) // otherwise already done in resetController
+        	chartView.setChart(analyzer.getChartData());
         
         descriptionView.setText(simModel.getDescriptionID());
+        drawController.setSimModel(simModel);
     }
 
     public void setChartView(ChartView chartView) {
@@ -87,18 +92,27 @@ public class ModelController implements Serializable {
      * Called by the Activity in onCreate when the modelController
      * is being pulled from a savedInstanceState
      */
-    public void resetController(AbstractSimModel abstractSimModel, ChartView chartView, LatticeView latticeView,
-    		TextView descriptionView, LinearLayout brushView) {
+    public void resetController(AbstractSimModel simModel, ChartView chartView, LatticeView latticeView,
+    		TextView descriptionView, LinearLayout brushView, double[][] currentMat, State drawState,
+    		XYMultipleSeriesDataset savedChartData) {
         setChartView(chartView);
+        chartView.setSavedChart(simModel.getAnalyzer().getChartData(),savedChartData);
         setDescriptionView(descriptionView);
         setLatticeView(latticeView);
-        this.drawController = new BrushController(latticeView, brushView);
-        //latticeView.restoreBitmap(savedBitmap);
-        //setSimModel(abstractSimModel);
+        latticeView.setCurrentMatrix(currentMat);
+        this.drawController = new BrushController(latticeView, brushView, drawState);
     }
     
     public BrushController getBrushController(){
     	return this.drawController;
+    }
+    
+    public double[][] getCurrentMatrix(){
+    	return latticeView.getCurrentMatrix();
+    }
+    
+    public XYMultipleSeriesDataset getChartData(){
+    	return chartView.getDataSet();
     }
 
     public void execute() {
@@ -110,7 +124,7 @@ public class ModelController implements Serializable {
      * Called by Activity's onStop method
      */
     public void stop() {
-    	pause();
+    	if (pause == false) pause();
         latticeView.stop();
         run = false;
         if (runningSim != null) runningSim.interrupt();
@@ -124,6 +138,7 @@ public class ModelController implements Serializable {
         endSimThread();
         latticeView.flush();
         computeLatticeAndUpdate();
+        chartView.restart(analyzer.getChartData());
         next(1);
     }
 
@@ -143,6 +158,7 @@ public class ModelController implements Serializable {
      */
     public void destroyModel() {
         if (runningSim != null) endSimThread();
+        chartView.destroyChart();
     }
 
 
@@ -158,7 +174,9 @@ public class ModelController implements Serializable {
         if (restart) {
         	if (runningSim != null) endSimThread();
             latticeView.flush();
+            drawController.notifyRestart();
             simModel.restart();
+            chartView.restart(analyzer.getChartData());
         }
         if (ran) {
             resume();
@@ -185,6 +203,7 @@ public class ModelController implements Serializable {
     }
     
     class SimThread extends Thread{
+    	public static final int SET_CELL = 2;
         Handler handler;
         
         public SimThread(){
@@ -200,7 +219,9 @@ public class ModelController implements Serializable {
     			Looper.prepare();
     			handler = new Handler(){
     				public void handleMessage(Message m){
-    					if (run){
+    					if (m.what == SET_CELL)
+    						simModel.setCell(m.arg1, m.arg2);
+    					else if (run){
     						if (paramsToUpdate != null){
     							simModel.setParams(paramsToUpdate);
     							paramsToUpdate =null;}
@@ -211,6 +232,7 @@ public class ModelController implements Serializable {
     				}
     			};
     			latticeView.setHandler(handler);
+    			drawController.setHandler(handler);
 				ModelInstance mi = new ModelInstance(simModel.first(), analyzer.getXPoint(), analyzer.getYPoint());
 				update(mi);
     			Looper.loop();
@@ -234,7 +256,11 @@ public class ModelController implements Serializable {
     private void endSimThread(){
     	run = false;
     	if (runningSim != null){
-    		runningSim.getHandler().sendEmptyMessage(0); // kill pill
+    		try{
+    			runningSim.getHandler().sendEmptyMessage(0); // kill pill
+    		} catch (NullPointerException e){
+    			// looper was never initialized, so ignore
+    		} 
     		runningSim.interrupt();
     		boolean retry = true;
     		while(retry){  // wait for runningSim to terminate

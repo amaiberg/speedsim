@@ -1,8 +1,11 @@
 package speedlab4;
 
+import org.achartengine.model.XYMultipleSeriesDataset;
+
 import com.speedlab4.R;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.*;
@@ -10,6 +13,7 @@ import android.widget.*;
 
 import speedlab4.model.AbstractSimModel;
 import speedlab4.model.ModelController;
+import speedlab4.model.State;
 import speedlab4.model.c.CTestAbstractSimModel;
 import speedlab4.model.java.CommunityVaccinated;
 import speedlab4.model.java.DynamicLandscape;
@@ -23,7 +27,6 @@ import speedlab4.ui.LegendAdapter;
 import speedlab4.ui.chart.ChartView;
 
 //TODO: intro screen
-//TODO: painting
 //TODO: navigation between lattices - gallery, pre-animation
 //TODO: Create enum class that uses R.id properties for each lattice
 //TODO: Decide if graph engine should draw every step, or an entire interval
@@ -39,7 +42,8 @@ public class SpeedSimActivity extends Activity {
     private GridView paramGrid;
     private Context thisContext;
     private boolean saved;
-    public int curSimID;
+    public int curSimID, prevSimID;
+    public static final String NEW_MODEL_SELECTED = "new model";
     private final Param[] testParamList = {new ParamBoolean("ToggleTest", true), new ParamDouble("Test", 0.5d, 0d, 1d)
             , new ParamGroupDoubleUnity("TestGroup", new ParamDouble("Test1", 0.4d, 0d), new ParamDouble("Test2", 0.1d, 0d), new ParamDouble("Test3", 0.5d, 0d))};
 
@@ -58,43 +62,39 @@ public class SpeedSimActivity extends Activity {
 
 //        Toast.makeText(getApplicationContext(), stringFromJNI(), Toast.LENGTH_LONG).show();
         restartBtn = (Button) findViewById(R.id.restartBtn);
-        fltBtn = (Button) findViewById(R.id.floating_button);
         this.thisContext = this;
 
         this.saved = (savedInstanceState != null);
+        String intentAction = getIntent().getAction();
 
         if (saved) {
             prevSim = curSim = (AbstractSimModel) savedInstanceState.get("curSim");
             modelController = (ModelController) savedInstanceState.get("modelController");
-            modelController.resetController(curSim, chartView, latticeView, descriptionView, brushView);
-            //      modelController.setSimModel(curSim);
+            modelController.resetController(curSim, chartView, latticeView, descriptionView, brushView,
+            		(double[][])savedInstanceState.get("currentMatrix"), (State)savedInstanceState.get("drawState"),
+            		(XYMultipleSeriesDataset)savedInstanceState.get("chartData"));
+            curSimID = savedInstanceState.getInt("simID");
+            flipper.setDisplayedChild(savedInstanceState.getInt("flipperIndex"));
 
         } else {
-
             modelController = new ModelController(latticeView, chartView, descriptionView, brushView);
-            curSimID = R.id.vants; //default simModel
+            if (intentAction.equals(NEW_MODEL_SELECTED)){
+            	Bundle whichModel = getIntent().getExtras();
+                curSimID = whichModel.getInt("modelID");
+            }
+            else
+            	curSimID = R.id.dynamic; //default simModel
         }
     }
 
     @Override
     public void onStart() {
-
         super.onStart();
-        //  int orientation = this.getResources().getConfiguration().orientation;
-        //if (orientation == Configuration.ORIENTATION_PORTRAIT) {
         initUI();
-
         if (!saved)
-            //       initSim(new CTestAbstractSimModel(256, this));
             runSim(curSimID);
-        else {
+        else
             initSim(curSim);
-        }
-    }
-
-
-    public void flipView(View view) {
-        flipper.showNext();
     }
 
     public void initUI() {
@@ -102,86 +102,82 @@ public class SpeedSimActivity extends Activity {
         strtBtn = (Button) findViewById(R.id.strtBtn);
         if(!modelController.pause)
             strtBtn.setText(getString(R.string.stopBtnTxt));
-        Button nxtButton = (Button) findViewById(R.id.nxtBtn);
         SeekBar speedBar = (SeekBar) findViewById(R.id.speedbar);
         speedBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 setModelSpeed(seekBar.getProgress());
             }
-
             public void onStartTrackingTouch(SeekBar seekBar) {
-
             }
 
             public void onStopTrackingTouch(SeekBar seekBar) {
-                //To change body of implemented methods use File | Settings | File Templates.
             }
         });
-
-        fltBtn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                flipView(view);
-            }
-        });
-
-        nxtButton.setOnClickListener(new View.OnClickListener() {
-
-            public void onClick(View view) {
-                next(view);
-            }
-        });
-
     }
-
 
     @Override
     public void onSaveInstanceState(Bundle bundle) {
         bundle.putSerializable("modelController", modelController);
         bundle.putSerializable("curSim", curSim);
-        //bundle.putParcelable("bitmap", modelController.getBitmap());
+        bundle.putInt("simID", curSimID);
+        bundle.putSerializable("currentMatrix", modelController.getCurrentMatrix());
+        bundle.putSerializable("drawState", modelController.getBrushController().getDrawState());
+        bundle.putSerializable("chartData", modelController.getChartData());
+        bundle.putInt("flipperIndex", flipper.getDisplayedChild());
         super.onSaveInstanceState(bundle);
-
-
     }
 
     @Override
     public void onRestoreInstanceState(Bundle bundle) {
         super.onRestoreInstanceState(bundle);
+    }
+    
+    public void onResume() {
+        super.onResume();
+    }
 
+    public void onPause() {
+    	modelController.pause();
+        super.onPause();
+    }
+
+    public void onDestroy() {
+        modelController.destroyModel();
+        super.onDestroy();
+    }
+
+    public void onStop() {
+        modelController.stop();
+        super.onStop();
+    }
+    
+    /*
+     * Called when the right arrow button is clicked
+     */
+    public void flipView(View view) {
+        flipper.showNext();
+    }
+    
+    /*
+     * Called when the left arrow button is clicked
+     */
+    public void flipBackView(View view) {
+        flipper.showPrevious();
     }
 
     /*
-     * Currently not being called because configChanges not specified in Manifest
-     * 
-     * (non-Javadoc)
-     * @see android.app.Activity#onConfigurationChanged(android.content.res.Configuration)
+     * Called when the Step button is clicked
      */
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        int orientation = getResources().getConfiguration().orientation;
-        if (orientation == Configuration.ORIENTATION_PORTRAIT)
-            Toast.makeText(getApplicationContext(), "PORTRAIT", Toast.LENGTH_LONG).show();
-        else {
-            Toast.makeText(getApplicationContext(), "LANDSCAPE", Toast.LENGTH_LONG).show();
-        }
-
-
-    }
-
     public void next(View view) {
         modelController.next(1);
-
     }
 
-    public void restart(View view){
-
-    }
-
+    /*
+     * Called when the Reset Defaults button is clicked
+     */
     public void reset(View view){
     	if (!modelController.pause) pauseModel(strtBtn);
         runSim(curSimID);
-
     }
 
     /*
@@ -211,37 +207,22 @@ public class SpeedSimActivity extends Activity {
 
     }
 
+    /*
+     * Called when the Restart button is clicked
+     */
     public void restartModel(View view) {
-    	if (!modelController.pause) pauseModel(strtBtn);
+    	//if (!modelController.pause) pauseModel(strtBtn);
     	modelController.restart();
         //curSim.restart();
         //modelController.execute();
     }
 
-
+    /*
+     * Called when the model speed seekbar is changed
+     */
     public void setModelSpeed(int rate) {
         modelController.setRate(rate);
     }
-
-
-    public void onResume() {
-        super.onResume();
-    }
-
-    public void onPause() {
-        super.onPause();
-    }
-
-    public void onDestroy() {
-        modelController.destroyModel();
-        super.onDestroy();
-    }
-
-    public void onStop() {
-        modelController.stop();
-        super.onStop();
-    }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -249,9 +230,29 @@ public class SpeedSimActivity extends Activity {
         inflater.inflate(R.menu.main_menu, menu);
         return true;
     }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+		if (!modelController.pause)
+			pauseModel(strtBtn);
+        return runSim(item.getItemId());
+    }
+    
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        if (requestCode == 1){
+        	Bundle whichModel = intent.getExtras();
+        	curSimID = whichModel.getInt("modelID");
+        }
+        else { // resume same model
+        	curSimID = prevSimID;
+        	saved = true;
+        }
+    }
 
     public boolean runSim(int simID, Param... params) {
         modelController.destroyModel();
+        prevSimID = curSimID;
         curSimID = simID;
         switch (simID) {
             case R.id.disp:
@@ -272,18 +273,24 @@ public class SpeedSimActivity extends Activity {
             case R.id.frog:
                 //    initSim(new FrogAbstractSim(100,params));
                 return true;
-            case R.id.plot:
-                //showHelp();
-                return true;
-            case R.id.parameters:
-                //showHelp();
-                return true;
+//            case R.id.plot:
+//                //showHelp();
+//                return true;
+//            case R.id.parameters:
+//                //showHelp();
+//                return true;
             // case R.id.model:
             //showHelp();
             //      return true;
-            case R.id.more:
-                //showHelp();
+            case R.id.browseModels:
+            	Intent i = new Intent(BrowseModelsActivity.SELECT_ANOTHER_MODEL, null, this, BrowseModelsActivity.class);
+                startActivityForResult(i, 1);//placeholder number, use named constant
+                finish();
                 return true;
+            case R.id.aboutThisApp:
+            	Intent k = new Intent(this, AboutActivity.class);
+        		startActivityForResult(k, curSimID);
+        		return true;
             case R.id.random:
                 initSim(new Random(Random.State.TEST1, new ParamDouble("Test", 0.5d, 0d, 1d)));
                 curSim.setParams(params);
@@ -303,14 +310,6 @@ public class SpeedSimActivity extends Activity {
         }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-		if (!modelController.pause)
-			pauseModel(strtBtn);
-        return runSim(item.getItemId());
-
-    }
-
     public void initSim(AbstractSimModel abstractSimModel) {
 
     	if (curSim != prevSim) {
@@ -319,11 +318,9 @@ public class SpeedSimActivity extends Activity {
     		modelController.destroyModel();
     	}
 
-
     	prevSim = curSim;
-    	//   modelController = new ModelController(latticeView, chartView);
     	curSim = abstractSimModel;
-    	modelController.setSimModel(curSim);
+    	modelController.setSimModel(curSim, curSim == prevSim);
     	modelController.execute();
 
     	ParamAdapter pAdapter = new ParamAdapter(thisContext, curSim.getParams(), modelController, new AbsListView.LayoutParams(0, 0));
@@ -338,7 +335,7 @@ public class SpeedSimActivity extends Activity {
     	GridView drawStateGrid = (GridView)findViewById(R.id.drawState_grid);
     	DrawStatesAdapter dAdapter = new DrawStatesAdapter(thisContext, modelController.getBrushController(), curSim.getStates());
     	drawStateGrid.setAdapter(dAdapter);
-
     }
+    
 
 }

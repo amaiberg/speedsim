@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/thumb_descrip"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:singleLine="false"
+        android:maxLines="100"
+        android:scrollHorizontally="false"
+        android:gravity="center_horizontal"/>
+
+<Button android:id="@+id/start_new_model"
+     android:layout_height="wrap_content"
+      android:layout_width="wrap_content"
+      android:padding="5dp"
+      android:layout_gravity="center_horizontal"
+      android:text="Start"
+      android:onClick="launchSpeedSim"/>
+
+</LinearLayout>

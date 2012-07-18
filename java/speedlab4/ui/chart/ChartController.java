@@ -14,12 +14,11 @@ import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 import speedlab4.model.XYPoint;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
 
-public class ChartController extends AbstractDemoChart implements Serializable {
+public class ChartController extends AbstractDemoChart{
 
     private int numPlots;
     private GraphicalView view;
@@ -27,6 +26,8 @@ public class ChartController extends AbstractDemoChart implements Serializable {
     XYMultipleSeriesRenderer renderer;
     private List<Queue<XYPoint>> lq;
     private double rate = .5d;
+    private Thread chartDrawThread;
+    private boolean running;
     private static final Map<Character, PointStyle> styleMap = new HashMap<Character, PointStyle>() {
         {
             put('.', PointStyle.POINT);
@@ -51,10 +52,10 @@ public class ChartController extends AbstractDemoChart implements Serializable {
 
 
     public void draw(int k) {
-        new Thread(new Runnable() {
+        chartDrawThread = new Thread(new Runnable() {
             //@Override
             public void run() {
-                while (true) {
+                while (running) {
                     //  synchronized(xymult){
                     for (int i = 0; i < lq.size(); i++)
                         if (!lq.get(i).isEmpty()) {
@@ -65,14 +66,29 @@ public class ChartController extends AbstractDemoChart implements Serializable {
 
                         }
                     try {
-                        Thread.sleep((int)(rate * 600d));
+                        Thread.sleep((int)(rate * 200d));
                     } catch (InterruptedException e) {
                         e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
                     }
                 }
             }
-        }, "Chart Drawing Thread"
-        ).start();
+        }, "Chart Drawing Thread");
+        chartDrawThread.start();
+    }
+    
+    public void endChartDrawThread(){
+    	running = false;
+    	if (chartDrawThread != null){
+    		chartDrawThread.interrupt();
+    		boolean retry = true;
+    		while (retry) {
+    			try {
+    				// Blocks this thread (main thread) until chartDrawThread dies.
+    				chartDrawThread.join();
+    				retry = false;
+    			} catch (InterruptedException e) {};
+    		}
+    	}
     }
 
 
@@ -86,7 +102,8 @@ public class ChartController extends AbstractDemoChart implements Serializable {
     }
 
     //Generalize
-    public View createChart(Context context, ChartData cData) {
+    public View createChart(Context context, ChartData cData, XYMultipleSeriesDataset savedData,
+    		boolean startThread) {
         double[][] xVals = cData.xValues;
         double[][] yVals = cData.yValues;
         numPlots = cData.numPlots;
@@ -97,9 +114,9 @@ public class ChartController extends AbstractDemoChart implements Serializable {
             x.add(xVals[i]);
             y.add(yVals[i]);
         }
-
+        
+        // set up renderer
         String xTitle = cData.xTitle, yTitle = cData.yTitle, plotTitle = cData.title;
-        ;
         String[] titles = cData.plotTitles;
         PointStyle[] styles = cData.styles;
         BasicStroke[] strokes = cData.strokes;
@@ -124,14 +141,31 @@ public class ChartController extends AbstractDemoChart implements Serializable {
                     .setFillPoints(true);
             ((XYSeriesRenderer) renderer.getSeriesRendererAt(i)).setStroke(strokes[i]);
         }
-        xymult = buildDataset(titles, x, y, cData.numPlots);
+        
+        if (savedData != null){
+        	xymult = savedData;
+        	// adjust maxY on chart to reflect saved y-values
+        	for (int i=0; i<xymult.getSeries().length; i++){
+        		if (xymult.getSeries()[i].getMaxY() > yValMax)
+        			yValMax = xymult.getSeries()[i].getMaxY();
+        	}
+        }
+        else
+        	xymult = buildDataset(titles, x, y, cData.numPlots);
+        
         Log.d("xymult", xymult + "");
-
         Log.d("renderer", types + "");
 
         view = org.achartengine.ChartFactory.getCombinedXYChartView(context, xymult, renderer, types);
-        draw(1);
+        if (startThread){
+        	running = true;
+        	draw(1);
+        }
         return view;
+    }
+    
+    public XYMultipleSeriesDataset getDataSet(){
+    	return xymult;
     }
 
 

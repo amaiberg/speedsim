@@ -40,48 +40,58 @@
     </LinearLayout>
 
 
-    <LinearLayout android:layout_height="wrap_content"
-                  android:layout_width="fill_parent" android:orientation="horizontal"
-            >
+    <RelativeLayout android:layout_height="wrap_content"
+                  android:layout_width="fill_parent" > <!--  android:orientation="horizontal" -->
 
-       <!--  Button
-                android:id="@+id/restrtBtn"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:text="@string/restartBtnTxt"
-                android:onClick="restartModel"
 
-                / -->
-        <Button
-                android:id="@+id/strtBtn"
+        <ImageButton android:id="@+id/leftArrow"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:src="@drawable/leftarrow" 
+            android:layout_alignParentLeft="true"
+            android:onClick="flipBackView"/>
+        
+        <Button android:id="@+id/strtBtn"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:text="@string/startBtnTxt"
-                android:onClick="pauseModel"
-
-                />
+                android:layout_toRightOf="@id/leftArrow"
+                android:onClick="pauseModel"/>
+        
         <Button android:id="@+id/nxtBtn"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
-                android:text="Next"
-                />
+                android:layout_toRightOf="@id/strtBtn"
+                android:text="Single Step"
+                android:onClick="next"/>
 
-        <Button android:id="@+id/floating_button"
+        <!--  <Button android:id="@+id/floating_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Switch View"
-                android:onClick="flipView"/>
+                android:onClick="flipView"/> -->
+        
          <Button android:id="@+id/reset"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Reset Defaults"
+                android:layout_toRightOf="@id/nxtBtn"
                 android:onClick="reset"/>
+         
         <Button android:id="@+id/restartBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Restart"
+                android:layout_toRightOf="@id/reset"
                 android:onClick="restartModel"/>
+        
+		<ImageButton android:id="@+id/rightArrow"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:src="@drawable/rightarrow" 
+			android:layout_alignParentRight="true"
+            android:onClick="flipView"/>
 
-
-    </LinearLayout>
+    </RelativeLayout>
+    
 </LinearLayout>

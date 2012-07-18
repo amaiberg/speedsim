@@ -57,7 +57,7 @@ public class CTestAbstractSimModel extends JAbstractSimModel {
 	}
 	
 	@Override
-    public void setCell(Point point, State state){
+    public void setCell(int x, int y, State state){
     	
     }
 

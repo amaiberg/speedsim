@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/lattice"
           android:icon="@drawable/ic_menu_smalltiles"
-          android:title="@string/lattice">
+          android:title="@string/selectModel">
         <menu>
             <item android:id="@+id/disp"
                   android:title="@string/disp"/>
@@ -27,7 +27,7 @@
         </menu>
     </item>
 
-    <item android:id="@+id/plot"
+    <!-- <item android:id="@+id/plot"
           android:icon="@drawable/ic_menu_chart"
           android:title="Plot"/>
     <item android:id="@+id/parameters"
@@ -35,8 +35,12 @@
           android:title="Parameters"/>
     <item android:id="@+id/modelController"
           android:icon="@drawable/ic_menu_globe"
-          android:title="Model"/>
-    <item android:id="@+id/more"
-          android:icon="@drawable/ic_menu_more"
-          android:title="More"/>
+          android:title="Model"/>  -->
+    
+    <item android:id="@+id/browseModels"
+		  android:icon="@drawable/ic_menu_database"
+          android:title="@string/browseModels"/>   
+    <item android:id="@+id/aboutThisApp"
+		  android:icon="@drawable/ic_menu_light"
+          android:title="@string/aboutThisApp"/>
 </menu>

@@ -24,7 +24,7 @@ public class ParamLinkedDoubleListener extends ParamBarListener<ParamLinkedDoubl
         	updateOtherParam();
         }
         paramView.onValueChanged(param.value);
-        modelController.setParams(param);
+        modelController.setParams(reqRestart, param);
         
     }
    

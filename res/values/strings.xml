@@ -12,6 +12,10 @@
     <string name="stopBtnTxt">Pause</string>
     <string name="initBtnTxt">Start</string>
     <string name="restartBtnTxt">Restart</string>
+    <string name="selectModel">Select Model</string>
+    <string name="browseModels">Browse Models</string>
+    <string name="aboutThisApp">About This App</string>
+    <string name="aboutSpeedSim">About SpeedSim</string>
     <string name="VaccCommModel"><b>Vaccinated Communites\n\n</b>Epidemiological model of a community-structured population with
         vaccination. Each column in the lattice image represents a different community.  Communities
         can have different vaccination levels.  Infected individuals contact others within their
@@ -35,4 +39,28 @@
         to the left.\nAntivants follow the same rules, except that they turn left instead of right and vice versa. This model
         demonstrates how very simple deterministic rules can result in extremely complex behavior.</string>
     <string name="RandomModel">Random model</string>
+    <string name="AboutThisAppText">The first few models on the previous screen are called \'Cellular Automatons.\'  You can
+         think of a cellular automaton model as a piece of graph paper, with many small squares, called cells. Each cell can
+         have one of several colors. Or instead of colors, you could use numbers to describe the value in each cell (the values
+          are called \'states\').\n\tThe squares are updated as follows: A clock ticks regularly, and on every tick of the clock 
+          (every \'time step\'), each cell examines its own value, and the values of some of its neighbors. It uses those values, 
+          and follows a kind of recipe or rule, which describes what its new state will be after the clock-tick. Every cell does
+           this simultaneously, using its own value and the values of some of its neighbors, to compute its new value. They then
+            change their state to their new values, all at once.\n\tIt sounds somewhat abstract, but cellular automata models 
+            have been used for many things, from simple attractive \'screen savers\', to studying the theory of computation, 
+            to modeling phenomena in physics, ecology/biology, geology, and fluid flow.\n\nThe other models listed implement 
+            some computational models based on the work of the SPEED Lab research group at the University of Maine. SPEED stands
+           for Spatial Population Ecological and Epidemiological Dynamics.  Research efforts of the group focus on computational 
+           and mathematical models of populations spread across landscapes. These landscapes often include different types of 
+           habitat, arranged in various types of patterns. Planned applications of the models include modeling the spread of 
+           plants in forested landscapes, agricultural crop pests such as maggot flies in commercial blueberry fields in Maine 
+           with pesticides being applied in various patterns, and other invasive species such as Asian woodwasps. The models are 
+           also being applied toward studying the spread of malicious software such as computer worms or viruses in networks, as 
+           such software often uses biologically-inspired dispersal strategies.  The models included in the app apply to studies 
+           of infection spread, multiscale dispersal, and the impact of clustered vaccination on outbreak levels.\n\tIn addition 
+           to the \'Lattice\' or grid view, models also plot the proportion of sites in each state. Tap the arrow buttons
+           to switch views. Views include model parameters, plot, description, and drawing. Drawing on the lattice is permitted. 
+           Try tapping or dragging your finger across the lattice.  You can change the drawing brush size 
+           and color in the drawing view.</string>
+        
 </resources>

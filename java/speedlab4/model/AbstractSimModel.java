@@ -63,7 +63,7 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
     public abstract int getColor(int state);
     
     //set the cells at the given coordinates to the given state
-    public abstract void setCell(Point point, State state);
+    public abstract void setCell(int x, int y, State state);
 
     //return first lattice instance
     public abstract double[][] first();
@@ -78,7 +78,6 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
     
     public abstract ParamLinkedDouble getParamLinkedDouble(String name, double value, double min, double max, String description, boolean reqRestart);
 
-
     public String getName() {
         return name;
     }
@@ -87,6 +86,35 @@ public abstract class AbstractSimModel<I extends ParamInteger, D extends ParamDo
 
     public void restart() {
         init();
+    }
+    
+    public void setDrawingState(State s){
+    	currentDrawingState = s;
+    }
+    
+    public State getDrawingState(){
+    	return currentDrawingState;
+    }
+    
+    public void setCell(int x, int y){
+    	setCell(x, y, currentDrawingState);
+    }
+    
+    /*
+     * This method is called when drawing occurs while the lattice is paused.
+     * The returned points will have their color changed to the state color on
+     * the currently visible lattice. Default behavior is to return only the
+     * points passed in, which are the points touched by the user.
+     * Subclasses should override if they need other points besides the touched
+     * points to change color.
+     * Keep in mind this method does not affect the model at all. It simply returns
+     * a list of points that the latticeView will update in its bitmap so that the
+     * user can see the result of their drawing. setCell() will be called by the
+     * controller later.
+     * @return the points that should change color to the state color
+     */
+    public ArrayList<Point> preprocessSetCell(ArrayList<Point> points, State state){
+    	return points;
     }
     
     /*

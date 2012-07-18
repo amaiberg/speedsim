@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView  xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content">
+    
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="10dp">
+    
+    <Button android:id="@+id/close_about"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="x"
+        android:layout_gravity="right"
+        android:onClick="closeAbout"/>
+    
+    <TextView android:id="@+id/about_title"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:text="@string/aboutSpeedSim"/>
+    
+	<TextView android:id="@+id/about_text"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/AboutThisAppText"
+        android:singleLine="false"
+        android:maxLines="100"
+        android:scrollHorizontally="false"/>
+
+</LinearLayout>
+</ScrollView>
