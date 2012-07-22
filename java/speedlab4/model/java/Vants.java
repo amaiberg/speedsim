@@ -1,6 +1,7 @@
 package speedlab4.model.java;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Random;
 
 import org.achartengine.chart.LineChart;
@@ -8,6 +9,7 @@ import org.achartengine.chart.PointStyle;
 import org.achartengine.renderer.BasicStroke;
 
 import android.graphics.Color;
+import android.graphics.Point;
 
 import com.speedlab4.R;
 
@@ -27,18 +29,20 @@ public class Vants extends JAbstractSimModel {
     private int antiVantHeading[];
     private int numGrayTiles, timestep;
     private Random random;
+    int numVants, numAntiVants;
     
-    private final ParamInteger numVants = IP("number of vants", 1, 0, 100, "number of vants", true);
-    private final ParamInteger numAntiVants = IP("number of anti-vants", 0, 0, 100, "number of vants", true);
+    private final ParamInteger initNumVants = IP("Initial number of vants", 1, 0, 100, "number of vants", true);
+    private final ParamInteger initNumAntiVants = IP("Initial number of anti-vants", 0, 0, 100, "number of vants", true);
+    private final ParamInteger displayEvery = IP("display every", 1, 1, 20);
     
     private static final int xoffsets[] = {0, 1, 0, -1}; // north, east, south, west
     private static final int yoffsets[] = {1, 0, -1, 0};
 	private static final int BLACK_TILE = 0, GRAY_TILE = 1, VANT = 2, ANTIVANT = 3;
 	
-	private static final State[] states = { new State("Black Tile", Color.BLACK),
-									new State("Gray Tile", Color.GRAY),
-									new State("Vant", Color.GREEN),
-									new State("Anti-vant", Color.RED)};
+	private static final State[] states = { new State("Black Tile", Color.BLACK, 0),
+									new State("Gray Tile", Color.GRAY, 1),
+									new State("Vant", Color.GREEN, 2),
+									new State("Anti-vant", Color.RED, 3)};
     
     public Vants(Param... pd){
     	super(100, R.string.VantsModel, pd);
@@ -62,6 +66,8 @@ public class Vants extends JAbstractSimModel {
 		cells = new double[size][size];
 		underColors = new int[size][size];
 		numGrayTiles = 0;
+		numVants  = initNumVants.value;
+		numAntiVants = initNumAntiVants.value;
 		// fill grid with black tiles
 		for(int x=0; x<size; x++) {
 	        for(int y=0; y<size; y++) {
@@ -70,31 +76,29 @@ public class Vants extends JAbstractSimModel {
 	        }
 	    }
 		// place vants
-		int numberVants = numVants.value;
 		int newVantX, newVantY;
-		for (int i=0; i<numberVants; i++){
+		for (int i=0; i<numVants; i++){
 			// pick spot for vant
-			newVantX = size/2; // FOR DEBUGGING
-			newVantY = size/2; // FOR DEBUGGING
-			//newVantX = (size/2 + random.nextInt(numberVants*2) - numberVants)%size;
-			//newVantY = (size/2 + random.nextInt(numberVants*2) - numberVants)%size;
-			//while (newVantX < 0) newVantX += size;
-			//while (newVantY < 0) newVantY += size;
+//			newVantX = size/2; // FOR DEBUGGING
+//			newVantY = size/2; // FOR DEBUGGING
+			newVantX = (size/2 + random.nextInt(numVants*2) - numVants)%size;
+			newVantY = (size/2 + random.nextInt(numVants*2) - numVants)%size;
+			while (newVantX < 0) newVantX += size;
+			while (newVantY < 0) newVantY += size;
 			vantX[i] = newVantX;
 			vantY[i] = newVantY;
-			vantHeading[i] = 0; // FOR DEBUGGING
-			//vantHeading[i] = random.nextInt(4);
+//			vantHeading[i] = 0; // FOR DEBUGGING
+			vantHeading[i] = random.nextInt(4);
 			cells[newVantX][newVantY] = VANT;
 			underColors[newVantX][newVantY] = GRAY_TILE;
 			numGrayTiles++;
 		}
 		// place anti-vants
-		int numberAntiVants = numAntiVants.value;
 		int newAntiVantX, newAntiVantY;
-		for (int i=0; i<numberAntiVants; i++){
+		for (int i=0; i<numAntiVants; i++){
 			// pick spot for anti-vant
-			newAntiVantX = (size/2 + random.nextInt(numberAntiVants*2) - numberAntiVants)%size;
-			newAntiVantY = (size/2 + random.nextInt(numberAntiVants*2) - numberAntiVants)%size;
+			newAntiVantX = (size/2 + random.nextInt(numAntiVants*2) - numAntiVants)%size;
+			newAntiVantY = (size/2 + random.nextInt(numAntiVants*2) - numAntiVants)%size;
 			while (newAntiVantX < 0) newAntiVantX += size; 
 			while (newAntiVantY < 0) newAntiVantY += size;
 			antiVantX[i] = newAntiVantX;
@@ -112,11 +116,13 @@ public class Vants extends JAbstractSimModel {
 //			timestep++;
 //			return cells;
 //		}
-		for (int i=0; i<numVants.value; i++)
-			stepVant(i);
-		for (int i=0; i<numAntiVants.value; i++)
-			stepAntiVant(i);
-		timestep++;
+		for (int j=0; j<displayEvery.value; j++){
+			for (int i=0; i<numVants; i++)
+				stepVant(i);
+			for (int i=0; i<numAntiVants; i++)
+				stepAntiVant(i);
+			timestep++;
+		}
 		return cells;
 	}
 
@@ -134,6 +140,43 @@ public class Vants extends JAbstractSimModel {
 	public State[] getStates() {
 		return states;
 	}
+	
+	@Override
+    public void setCell(int x, int y, State state){
+    	// update state-specific data structures
+    	if (state.constant == BLACK_TILE){
+        		if (underColors[x][y] == GRAY_TILE) numGrayTiles--;
+        		underColors[x][y] = BLACK_TILE;
+        		// we don't draw over vants, only undercolor is changed
+    	}
+    	else if (state.constant == GRAY_TILE){
+        		if (underColors[x][y] == BLACK_TILE) numGrayTiles++;
+        		underColors[x][y] = GRAY_TILE;
+        		// we don't draw over vants, only undercolor is changed
+    	}
+    	else if (state.constant == VANT && cells[x][y] != VANT && cells[x][y] != ANTIVANT){
+        		vantX[numVants] = x;
+        		vantY[numVants] = y;
+        		vantHeading[numVants] = random.nextInt(4);
+          		numVants++;
+        		// flip tile
+        		if (underColors[x][y] == BLACK_TILE)
+        			underColors[x][y] = GRAY_TILE;
+        		else underColors[x][y] = BLACK_TILE;
+    	}
+    	else if (state.constant == ANTIVANT && cells[x][y] != VANT && cells[x][y] != ANTIVANT){
+        		antiVantX[numAntiVants] = x;
+        		antiVantY[numAntiVants] = y;
+        		antiVantHeading[numAntiVants] = random.nextInt(4);
+        		numAntiVants++;
+        		// flip tile
+        		if (underColors[x][y] == BLACK_TILE)
+        			underColors[x][y] = GRAY_TILE;
+        		else underColors[x][y] = BLACK_TILE;
+    	}
+		// update the matrix
+    		cells[x][y] = state.constant;
+    }
 	
 	public class VantsAnalyzer extends AbstractAnalyzer implements Serializable {
 

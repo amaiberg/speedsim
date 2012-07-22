@@ -28,6 +28,6 @@ public class ParamDoubleListener extends ParamBarListener<ParamDouble, Double> {
     public void onStopTrackingTouch(SeekBar seekBar) {
         param.setParam(seekBar.getProgress() / 100d);
         paramView.onValueChanged(param.value);
-        modelController.setParams(param);        
+        modelController.setParams(reqRestart, param);        
     }
 }

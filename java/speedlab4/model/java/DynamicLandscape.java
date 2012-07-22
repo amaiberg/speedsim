@@ -1,6 +1,7 @@
 package speedlab4.model.java;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -11,6 +12,7 @@ import org.achartengine.renderer.BasicStroke;
 
 import com.speedlab4.R;
 import android.graphics.Color;
+import android.graphics.Point;
 import speedlab4.model.AbstractAnalyzer;
 import speedlab4.model.State;
 import speedlab4.model.java.CommunityVaccinated.CommunityVaccAnalyzer;
@@ -21,11 +23,11 @@ import speedlab4.ui.chart.ChartData;
 
 public class DynamicLandscape extends JAbstractSimModel {
 	
-	private int numOcc, numSuitable, numUnsuitable, numUpdatesPerStep,
+	private volatile int numOcc, numSuitable, numUnsuitable, numUpdatesPerStep,
 		newx, newy, timestep;
-	private double cells[][];
-    private int occGrid[][], occX[], occY[];
-    private int unsuitableX[], unsuitableY[];
+	private volatile double cells[][];
+    private volatile int occGrid[][], occX[], occY[];
+    private volatile int unsuitableGrid[][], unsuitableX[], unsuitableY[];
     private Random random;
     
     private final ParamInteger initDensity = IP("Initial population density", 25, 0, 100, "Initial population density", true);
@@ -40,9 +42,9 @@ public class DynamicLandscape extends JAbstractSimModel {
     
 	private static final int EMPTY = -1, UNOCC_GOODSITE = 0, BADSITE = 1, OCC_GOODSITE = 2;
 	
-	private static final State[] states = { new State("Unoccupied suitable site", Color.BLACK),
-									new State("Unsuitable site", Color.GRAY),
-									new State("Occupied suitable site", Color.GREEN) };
+	private static final State[] states = { new State("Unoccupied suitable site", Color.BLACK, 0),
+									new State("Unsuitable site", Color.GRAY, 1),
+									new State("Occupied suitable site", Color.GREEN, 2) };
 	
 	public DynamicLandscape(Param... pd){
 		super(100, R.string.DynamicLandModel, pd);
@@ -62,6 +64,7 @@ public class DynamicLandscape extends JAbstractSimModel {
 		int size = super.getSize();
 		cells = new double[size][size];
 		occGrid = new int[size][size];
+		unsuitableGrid = new int[size][size];
 		numUpdatesPerStep = size*size/8;
 		initLandscape();
 		initPop();
@@ -82,6 +85,73 @@ public class DynamicLandscape extends JAbstractSimModel {
 	public State[] getStates(){
 		return states;
 	}
+	
+	@Override
+    public void setCell(int x, int y, State state){
+		if (state.constant == UNOCC_GOODSITE){
+			if (cells[x][y] == OCC_GOODSITE){ // kill pop
+				int index = occGrid[x][y];
+				int lastX = occX[numOcc-1];
+				int lastY = occY[numOcc-1];
+				occX[index] = lastX;
+				occY[index] = lastY;
+				occGrid[lastX][lastY] = index;
+				numOcc--;
+				cells[x][y] = UNOCC_GOODSITE;
+			}
+			else if (cells[x][y] == BADSITE){ // turn bad site good
+				int index = unsuitableGrid[x][y];
+				int lastX = unsuitableX[numUnsuitable-1];
+				int lastY = unsuitableY[numUnsuitable-1];
+				unsuitableX[index] = lastX;
+        		unsuitableY[index] = lastY;
+        		unsuitableGrid[lastX][lastY] = index;
+        		unsuitableGrid[x][y] = -1;
+        		numSuitable++;
+        		numUnsuitable--;
+        		cells[x][y] = UNOCC_GOODSITE;
+			}
+		}
+		else if (state.constant == BADSITE){
+			if (cells[x][y] == OCC_GOODSITE){ // kill pop
+				int index = occGrid[x][y];
+				int lastX = occX[numOcc-1];
+				int lastY = occY[numOcc-1];
+				occX[index] = lastX;
+				occY[index] = lastY;
+				occGrid[lastX][lastY] = index;
+				numOcc--;
+			}
+			if (cells[x][y] != BADSITE){ // turn site bad
+				unsuitableX[numUnsuitable] = x;
+				unsuitableY[numUnsuitable] = y;
+				unsuitableGrid[x][y] = numUnsuitable;
+				numSuitable--;
+				numUnsuitable++;
+				cells[x][y] = BADSITE;
+			}
+		}
+		else if (state.constant == OCC_GOODSITE){
+			if (cells[x][y] == BADSITE){ // turn bad site good
+				int index = unsuitableGrid[x][y];
+				int lastX = unsuitableX[numUnsuitable-1];
+				int lastY = unsuitableY[numUnsuitable-1];
+				unsuitableX[index] = lastX;
+        		unsuitableY[index] = lastY;
+        		unsuitableGrid[lastX][lastY] = index;
+        		unsuitableGrid[x][y] = -1;
+        		numSuitable++;
+        		numUnsuitable--;
+			}
+			if (cells[x][y] != OCC_GOODSITE){ // place pop
+				occX[numOcc] = x;				
+				occY[numOcc] = y;
+				occGrid[x][y] = numOcc;
+				numOcc++;
+				cells[x][y] = OCC_GOODSITE;
+			}
+		}
+    }
 
 	@Override
 	public double[][] first() {
@@ -128,6 +198,8 @@ public class DynamicLandscape extends JAbstractSimModel {
 		numUnsuitable=0;
 		for(int x=0;x<size;x++) {
 			for(int y=0;y<size;y++) {
+				// empty unsuitable grid
+				unsuitableGrid[x][y] = -1;
 				// fix cells grid so all unoccupied sites are suitable 
 				if(cells[x][y] != OCC_GOODSITE)
 					cells[x][y] = UNOCC_GOODSITE;
@@ -219,8 +291,12 @@ public class DynamicLandscape extends JAbstractSimModel {
                 index = random.nextInt(numUnsuitable);
                 x = unsuitableX[index];
                 y = unsuitableY[index];
-        		unsuitableX[index] = unsuitableX[numUnsuitable-1]; // move last elt in array into new open spot
-        		unsuitableY[index] = unsuitableY[numUnsuitable-1];
+                int lastX = unsuitableX[numUnsuitable-1];
+                int lastY = unsuitableY[numUnsuitable-1];
+        		unsuitableX[index] = lastX; // move last elt in array into new open spot
+        		unsuitableY[index] = lastY;
+        		unsuitableGrid[lastX][lastY] = index;
+                unsuitableGrid[x][y] = -1;
         		cells[x][y] = UNOCC_GOODSITE;
         		numSuitable++;
         		numUnsuitable --;
@@ -254,6 +330,7 @@ public class DynamicLandscape extends JAbstractSimModel {
 						if (cells[x2][y2] != BADSITE){ // turn site bad
 							unsuitableX[numUnsuitable] = x2;
 							unsuitableY[numUnsuitable] = y2;
+							unsuitableGrid[x2][y2] = numUnsuitable;
 							cells[x2][y2] = BADSITE;
 							numSuitable--;
 							numUnsuitable++;
@@ -288,8 +365,8 @@ public class DynamicLandscape extends JAbstractSimModel {
 			}
 		}
 		int retVal = -1;
-		if (retVal == -1)
-			throw new ArrayIndexOutOfBoundsException();
+//		if (retVal == -1)
+//			throw new ArrayIndexOutOfBoundsException();
 		//System.out.println("Something went wrong. d="+d+" dSum="+dSum);
 		return retVal; //cannot reach this
 	}

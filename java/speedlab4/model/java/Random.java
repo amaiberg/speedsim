@@ -16,6 +16,8 @@
 package speedlab4.model.java;
 
 import android.graphics.Color;
+import android.graphics.Point;
+
 import org.achartengine.chart.LineChart;
 import org.achartengine.chart.PointStyle;
 import org.achartengine.renderer.BasicStroke;
@@ -32,6 +34,7 @@ import speedlab4.params.Param;
 import speedlab4.params.ParamDouble;
 import com.speedlab4.R;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -129,12 +132,17 @@ public class Random extends JAbstractSimModel {
     
 	@Override
 	public speedlab4.model.State[] getStates(){
-		speedlab4.model.State[] placeHolder = {new speedlab4.model.State("temp",Color.WHITE)};
+		speedlab4.model.State[] placeHolder = {new speedlab4.model.State("temp",Color.WHITE, 0)};
 		return placeHolder;
 	}
 
     public double[][] first() {
         return occ.toArray();
+    }
+    
+	@Override
+    public void setCell(int x, int y, speedlab4.model.State state){
+    	
     }
 
 

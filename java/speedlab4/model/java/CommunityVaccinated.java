@@ -1,6 +1,7 @@
 package speedlab4.model.java;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -12,6 +13,7 @@ import org.achartengine.renderer.BasicStroke;
 import com.speedlab4.R;
 
 import android.graphics.Color;
+import android.graphics.Point;
 
 import speedlab4.model.AbstractAnalyzer;
 import speedlab4.model.State;
@@ -40,20 +42,20 @@ public class CommunityVaccinated extends JAbstractSimModel {
 	private final ParamDouble rho = DP("vaccine effectiveness", 0.8, 0, 1);
 	private final ParamDouble alpha = DP("alpha", 0.1, 0, 1);
 	private final ParamDouble gamma = DP("loss of resistance rate", 0.5, 0, 20);
-	private final ParamLinkedDouble Quu = LDP("Quu", 0.35, 0.0, 1.0);//////////////////
-	private final ParamLinkedDouble EU = LDP("EU", 0.35, 0, 1);
+	private final ParamLinkedDouble Quu = LDP("Quu", 0.35, 0.0, 1.0, "Clustering", true);
+	private final ParamLinkedDouble EU = LDP("EU", 0.35, 0.0, 1.0, "Expected unvaccinated", true);
 	private final ParamInteger initInfectedComms = IP("Initial percentage communities infected", 30, 0, 100, "Init inf comms", true);
 	private final ParamInteger initInfectedPerComm = IP("Initial infected per community", 20, 0, 100, "Init inf per comm", true);
 	
 	private static final int SUS_UNVACC = 0, SUS_VACC = 1, INFECTED_UNVACC = 2, INFECTED_VACC = 3,
 			RESISTANT_UNVACC = 4, RESISTANT_VACC = 5;
 
-	private static final State[] states= {new State("Susceptible Unvaccinated",Color.BLACK),
-		new State("Susceptible Vaccinated",Color.GREEN),
-		new State("Infected Unvaccinated",Color.RED),
-		new State("Infected Vaccinated",Color.MAGENTA),
-		new State("Resistant Unvaccinated",Color.BLUE),
-		new State("Resistant Vaccinated",Color.CYAN),
+	private static final State[] states= {new State("Susceptible Unvaccinated",Color.BLACK, 0),
+		new State("Susceptible Vaccinated",Color.GREEN, 1),
+		new State("Infected Unvaccinated",Color.RED, 2),
+		new State("Infected Vaccinated",Color.MAGENTA, 3),
+		new State("Resistant Unvaccinated",Color.BLUE, 4),
+		new State("Resistant Vaccinated",Color.CYAN, 5),
 	};
 	
 	
@@ -144,12 +146,12 @@ public class CommunityVaccinated extends JAbstractSimModel {
 //			return cells;
 //		}
 		if (ready){
-			if (Math.abs(Quu.value - measuredQuu) > .001){
-				adjustQuuStep();
-			} else System.out.println("measured Quu: "+measuredQuu);
-			if (Math.abs(EU.value - measuredEU) > .01){
-				adjustEUstep();
-			}
+//			if (Math.abs(Quu.value - measuredQuu) > .001){
+//				adjustQuuStep();
+//			} else System.out.println("measured Quu: "+measuredQuu);
+//			if (Math.abs(EU.value - measuredEU) > .01){
+//				adjustEUstep();
+//			}
 			step();
 		}
 		return cells;
@@ -163,6 +165,81 @@ public class CommunityVaccinated extends JAbstractSimModel {
 	@Override
 	public State[] getStates(){
 		return states;
+	}
+	
+	@Override
+    public void setCell(int x, int y, State state){
+		if (cells[x][y] != state.constant){
+			// find lower bound and upper bound of state s in house x
+			// there is some weirdness in this function in usage of x-y because
+			// axes are rotated from input point, cells grid, and pop arrays
+			int lowBound = -1;
+			int upBound = numPerCommunity;
+			boolean lowBoundFound = false;
+			boolean upBoundFound = false;
+			// first try upper bound
+			while (upBound > 0 && !upBoundFound){
+				upBound--;
+				if (cells[upBound][y] <= state.constant) 
+					upBoundFound = true;
+			}	
+			// if y > upperBound, create pop in all cells between upperBound and y
+			if (x > upBound){
+				for (int i=upBound+1; i<=x; i++){
+					int oldS = (int) cells[i][y]; 
+					createPop(numCommunities-1-y, state.constant, oldS); 
+				}
+			}
+			else{ // otherwise try lower bound
+				while (lowBound < (numPerCommunity-1) && !lowBoundFound){
+					lowBound++;
+					if (cells[lowBound][y] >= state.constant) 
+						lowBoundFound = true;
+				}
+				// if y < lowerBound, create pop in all cells between y and lowerBound
+				if (x < lowBound){
+					for (int i=lowBound-1; i>=x; i--){
+						int oldS = (int) cells[i][y];
+						createPop(numCommunities-1-y, state.constant, oldS);
+					}
+				}
+			}
+			updateCellsGrid();
+		}
+    }
+	
+	@Override
+	public ArrayList<Point> preprocessSetCell(ArrayList<Point> points, State state){
+		Point p;
+		int totalPoints = points.size();
+		for (int k=0; k<totalPoints; k++){
+			p = points.get(k);
+			if (cells[p.x][p.y] != state.constant){
+				int lowBound = -1;
+				int upBound = numPerCommunity;
+				boolean lowBoundFound = false;
+				boolean upBoundFound = false;
+				while (upBound > 0 && !upBoundFound){
+					upBound--;
+					if (cells[upBound][p.y] <= state.constant) 
+						upBoundFound = true;
+				}	
+				if (p.x > upBound)
+					for (int i=upBound; i<=p.x; i++)
+						points.add(new Point(i, p.y));
+				else{ 
+					while (lowBound < (numPerCommunity-1) && !lowBoundFound){
+						lowBound++;
+						if (cells[lowBound][p.y] >= state.constant) 
+							lowBoundFound = true;
+					}
+					if (p.x < lowBound)
+						for (int i=lowBound; i>=p.x; i--)
+							points.add(new Point(i, p.y));
+				}
+			}
+		}
+		return points;
 	}
 
 	@Override
@@ -378,6 +455,55 @@ public class CommunityVaccinated extends JAbstractSimModel {
 	}
 	
 	/*
+	 * Creates an individual in the given house in the given
+	 * state. Removes individual who is currently there.
+	 * Does not update the grid--caller must do this
+	 * @param oldState current state of the individual in that spot
+	 */
+	private void createPop(int house, int state, int oldState){
+		// only update if new pop state is different from old pop state
+		if (state != oldState){
+			// first remove individual who is there
+			removePop(house, oldState);	
+			if (state == SUS_UNVACC)
+				addSU(house, 1); //(x, 1)
+			else if (state == SUS_VACC)
+				addSV(house, 1);
+			else if (state == INFECTED_UNVACC)
+				addIU(house, 1);
+			else if (state == INFECTED_VACC)
+				addIV(house, 1);
+			else if (state == RESISTANT_UNVACC)
+				addRU(house, 1);
+			else if (state == RESISTANT_VACC)
+				addRV(house, 1);
+			//cells[y][numCommunities-1-x] = state;
+			//cells[x][y] = state;
+		}
+	}
+	
+	/*
+	 * Removes the individual at the given x-y coords from the population.
+	 * Does not replace with anything.
+	 * Does not update grid -- caller must do this
+	 * @param oldState the state of the individual being removed
+	 */
+	private void removePop(int house, int oldState){
+		if (oldState == SUS_UNVACC)
+			removeSU(house, 1);
+		else if (oldState == SUS_VACC)
+			removeSV(house, 1);
+		else if (oldState == INFECTED_UNVACC)
+			removeIU(house, 1);
+		else if (oldState == INFECTED_VACC)
+			removeIV(house, 1);
+		else if (oldState == RESISTANT_UNVACC)
+			removeRU(house, 1);
+		else if (oldState == RESISTANT_VACC)
+			removeRV(house, 1);
+	}
+	
+	/*
 	 * Private helper method to clear the population
 	 */
 	private void clearPop() {
@@ -552,8 +678,8 @@ public class CommunityVaccinated extends JAbstractSimModel {
 			}
 		}
 		int retVal = -1;
-		if (retVal == -1)
-			throw new ArrayIndexOutOfBoundsException();
+//		if (retVal == -1)
+//			throw new ArrayIndexOutOfBoundsException();
 		//System.out.println("Something went wrong. d="+d+" dSum="+dSum);
 		return retVal; //cannot reach this
 	}

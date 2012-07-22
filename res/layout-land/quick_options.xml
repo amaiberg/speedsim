@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_height="fill_parent"
+              android:layout_width="wrap_content" android:orientation="vertical"
+              android:paddingRight="15dp">
+
+        <ImageButton android:id="@+id/leftArrow"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_gravity="top"
+            android:src="@drawable/uparrow" 
+            android:onClick="flipBackView"/>
+            
+        <Button android:id="@+id/strtBtn"
+                android:layout_height="wrap_content"
+                android:layout_width="fill_parent"
+                android:text="@string/startBtnTxt"
+                android:onClick="pauseModel"/>
+        
+        <!-- <Button android:id="@+id/nxtBtn"
+                android:layout_height="wrap_content"
+                android:layout_width="fill_parent"
+                android:layout_gravity="center_horizontal"
+                android:text="Next"/>  -->
+
+        <!-- <Button android:id="@+id/floating_button"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="Switch View"
+                android:onClick="flipView"/>  -->
+        
+         <Button android:id="@+id/reset"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reset Defaults"
+                android:onClick="reset"/>
+         
+        <!-- <Button android:id="@+id/restartBtn"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="Restart"
+                android:onClick="restartModel"/>  -->
+        
+        <ImageButton android:id="@+id/rightArrow"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_gravity="bottom"
+            android:src="@drawable/downarrow" 
+            android:onClick="flipView"/>
+    
+</LinearLayout>

@@ -12,6 +12,7 @@ package speedlab4.model.c;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.util.Log;
 import com.speedlab4.R;
 
@@ -20,6 +21,7 @@ import speedlab4.model.java.JAbstractSimModel;
 import speedlab4.params.Param;
 
 import java.io.FileDescriptor;
+import java.util.ArrayList;
 
 
 public class CTestAbstractSimModel extends JAbstractSimModel {
@@ -50,9 +52,14 @@ public class CTestAbstractSimModel extends JAbstractSimModel {
     
 	@Override
 	public State[] getStates(){
-		State[] placeHolder = {new State("temp",Color.WHITE)};
+		State[] placeHolder = {new State("temp",Color.WHITE, 0)};
 		return placeHolder;
 	}
+	
+	@Override
+    public void setCell(int x, int y, State state){
+    	
+    }
 
     @Override
     public double[][] next(double time) {

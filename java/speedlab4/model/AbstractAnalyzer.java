@@ -1,5 +1,7 @@
 package speedlab4.model;
 
+import java.io.Serializable;
+
 import speedlab4.ui.chart.ChartData;
 
 /**
@@ -9,7 +11,7 @@ import speedlab4.ui.chart.ChartData;
  * Time: 1:03 PM
  * To change this template use File | Settings | File Templates.
  */
-public abstract class AbstractAnalyzer {
+public abstract class AbstractAnalyzer implements Serializable{
 
 
     public abstract ChartData getChartData();

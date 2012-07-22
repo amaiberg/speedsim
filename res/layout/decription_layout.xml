@@ -1,26 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"> 
+    
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="10dp" >
               
     <TextView android:id="@+id/descriptionView"
-        	android:text="Blah blah"
-        	android:layout_width="wrap_content"
+        	android:text="@string/DynamicLandModel"
+        	android:layout_width="fill_parent"
         	android:layout_height="wrap_content"
-        	android:gravity="top" />
+        	android:singleLine="false"
+        	android:maxLines="100"
+        	android:scrollHorizontally="false"/>
     
-     <GridView android:id="@+id/legend_grid"
+       <speedlab4.ui.ExpandedGridView android:id="@+id/legend_grid"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
 			android:columnWidth="200dp"
             android:numColumns="auto_fit"
             android:verticalSpacing="10dp"
-            android:horizontalSpacing="10dp"
+            android:horizontalSpacing="5dp"
             android:stretchMode="columnWidth"
             android:gravity="bottom"
+            android:paddingTop="10dp"
             />
 
 </LinearLayout>
+
+</ScrollView>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="20dp"
+    android:orientation="horizontal" >
+ 
+<TextView android:id="@+id/legendColor"
+    android:layout_width="wrap_content"
+    android:layout_height="20dp"
+    android:height="20dp"
+    android:width="20dp"
+    android:text="."
+    android:background="#fffff0"
+    android:paddingRight="5dp"
+    android:gravity="fill_vertical">
+    </TextView>
+    
+<TextView android:id="@+id/legendKey"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:textSize="14sp"
+    android:paddingLeft="5dp"
+    android:gravity="center_vertical">
+    </TextView>
+    
+
+    
+</LinearLayout>

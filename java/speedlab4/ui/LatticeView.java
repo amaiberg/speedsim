@@ -11,8 +11,11 @@ import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+
 import com.speedlab4.R;
 import speedlab4.model.AbstractSimModel;
+import speedlab4.ui.listeners.DrawingListener;
 
 import java.io.Serializable;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -33,6 +36,7 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
     private SurfaceViewThread viewThread;
     private Bitmap backBuffer;
     private Canvas backCanvas;
+    private double[][] currentMatrix;
 
     private double rate =0.5d;
     private int frames=0,maxframes=0;
@@ -47,15 +51,20 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
         //  Log.e("s1","relative size: " + s.toString() );
         if (s != null)
             sizeFactor = Integer.valueOf(s.toString());
+        
+        currentMatrix = new double[10][10];
 
         getHolder().addCallback(this);
         viewThread = new SurfaceViewThread(getHolder(), this);
-
     }
 
     public void setSimModel(AbstractSimModel abstractSimModel) {
         latticeBuffer.clear();
         this.abstractSimModel = abstractSimModel;
+    }
+    
+    public AbstractSimModel getSimModel(){
+    	return this.abstractSimModel;
     }
 
     public void setDims(int startx, int starty, int width, int height) {
@@ -65,6 +74,10 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
         this.height = height;
     }
 
+    /*
+     * Tries to put the given matrix into the latticeBuffer queue.
+     * Calling thread will block if the queue is full.
+     */
     public void addMatrix(double[][] matrix) {
 
         try {
@@ -73,6 +86,30 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 
+    }
+ 
+    /*
+     * Changes the value of the given cell in the underlying matrix
+     * of the currently shown lattice
+     */
+    public void setCurrentMatrixCell(int x, int y, double val){
+    	currentMatrix[x][y] = val;
+    }
+    
+    /*
+     * Sets the current underlying matrix of the lattice to the
+     * given value.
+     */
+    public void setCurrentMatrix(double[][] matrix){
+    	this.currentMatrix = matrix;
+    }
+    
+    /*
+     * Returns the matrix that corresponds to the lattice currently
+     * displayed on the screen.
+     */
+    public double[][] getCurrentMatrix(){
+    	return this.currentMatrix;
     }
 
     @Override
@@ -89,7 +126,7 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
      * Retrieves/removes the matrix at the head of the
      * latticeBuffer queue and draws it to backCanvas
      */
-    public void drawOnCanvas(Canvas canvas) {
+    public void drawNextOnCanvas(Canvas canvas) {
         double[][] lastMat = new double[10][10];
                try {
                     lastMat = latticeBuffer.take();
@@ -98,13 +135,26 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
                 }
                 drawLattice(canvas,lastMat);
     }
+    
+    /*
+     * Draws the underlying matrix of the canvas that is 
+     * currently displayed without taking a step in the model
+     */
+    public void drawCurrentOnCanvas(Canvas canvas){
+    	drawLattice(canvas, currentMatrix);
+    }
 
     private void drawLattice(Canvas canvas,double[][] lastMat) {
-
+    	if (currentMatrix.length != lastMat.length)
+    		currentMatrix = new double[lastMat.length][lastMat.length];
+    	
         square_size = (float) width / (float) lastMat.length;
-        // Log.i("lastMat", lastMat.length + "");
+        
         for (float j = 0; j < lastMat.length; j++)
             for (float k = 0; k < lastMat.length; k++) {
+            	// save lastMat in currentMatrix
+            	currentMatrix[(int)j][(int)k] = lastMat[(int) j][(int) k];
+            	// draw lastMat to canvas
                 int c = abstractSimModel.getColor((int) lastMat[(int) j][(int) k]);
                 p.setColor(c);
                 canvas.drawRect(startx + k * square_size, starty + j
@@ -135,8 +185,8 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
             this.setMeasuredDimension(this.width, this.height);
         }
 
-        this.setLayoutParams(new FrameLayout.LayoutParams(this.width, this.height));
-
+        //this.setLayoutParams(new FrameLayout.LayoutParams(this.width, this.height));
+        this.setLayoutParams(new LinearLayout.LayoutParams(this.width, this.height));
 
        // super.onMeasure(width, height);
         initializeBackBuffer();
@@ -166,8 +216,11 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
      * Called by system when surface is first created
      */
     public void surfaceCreated(SurfaceHolder holder) {
+    	if (viewThread == null)
+    		viewThread = new SurfaceViewThread(getHolder(), this);
         viewThread.setRunning(true);
-        viewThread.start();
+        if (!viewThread.isAlive())
+        	viewThread.start();
     }
 
 
@@ -176,25 +229,30 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
      * Called by stop(), which is called when the Activity's onStop() is called
      */
     public void surfaceDestroyed(SurfaceHolder holder) {
-        boolean retry = true;
-        viewThread.setRunning(false);
-        while (retry) {
-            try {
-            	// Blocks this thread (main thread) until viewThread dies.
-                viewThread.join();
-                retry = false;
-            } catch (InterruptedException e) {
-                // we will try it again and again...
-            }
-        }
+    	if (viewThread != null){
+    		boolean retry = true;
+    		viewThread.setRunning(false);
+    		viewThread.interrupt();
+    		while (retry) {
+    			try {
+    				// Blocks this thread (main thread) until viewThread dies.
+    				viewThread.join();
+    				retry = false;
+    			} catch (InterruptedException e) {
+    				// we will try it again and again...
+    			}
+    		}
+    		viewThread = null;
+    	}
     }
 
     /*
      * Called when Activity's onStop() called
      */
     public void stop() {
-        surfaceDestroyed(getHolder());
-        viewThread.interrupt();
+        //surfaceDestroyed(getHolder());
+        //viewThread.interrupt();
+    	surfaceDestroyed(getHolder());
     }
 
     public void setRate(double rate){
@@ -202,8 +260,13 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
     }
 
     public void pause(){
-        viewThread.setDraw(false);
+        viewThread.setDrawNext(false);
+        viewThread.setDrawCurrent(false);
         maxframes =0;
+    }
+    
+    public boolean isPaused(){
+    	return (!viewThread.getDraw() || frames == maxframes);
     }
 
     /*
@@ -212,16 +275,20 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
      */
     public void resume(){
         maxframes =-1;
-        viewThread.setDraw(true);
+        viewThread.setDrawNext(true);
+        viewThread.setDrawCurrent(false);
     }
 
-    public void resume(int maxframes){
-        if(maxframes != -1){
-            this.frames =0;
-            this.maxframes = maxframes;
-            viewThread.setDraw(true);
-            }
-        }
+    public void resume(int maxframes, boolean drawNext){
+    	if (viewThread == null)
+    		viewThread = new SurfaceViewThread(getHolder(), this);
+    	if(maxframes != -1){
+    		this.frames =0;
+    		this.maxframes = maxframes;
+    		viewThread.setDrawNext(drawNext);
+    		viewThread.setDrawCurrent(!drawNext);
+    	}
+    }
 
     public void setHandler(Handler h){
     	viewThread.setHandler(h);
@@ -232,7 +299,9 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
         private final SurfaceHolder surfaceHolder;
         private LatticeView view;
         volatile private boolean run = false;
-        volatile private boolean draw = false;
+        //volatile private boolean draw = false;
+        volatile private boolean drawNext = false;
+        volatile private boolean drawCurrent = false;
         private Handler handler;///
 
         public SurfaceViewThread(SurfaceHolder surfaceHolder, LatticeView view) {
@@ -245,8 +314,16 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
         	run = val;
         }
         
-        public void setDraw(boolean val) {
-        	draw = val;
+        public void setDrawCurrent(boolean val){
+        	drawCurrent = val;
+        }
+        
+        public void setDrawNext(boolean val){
+        	drawNext = val;
+        }
+        
+        public boolean getDraw(){
+        	return drawNext;
         }
         
         public void setHandler(Handler h){
@@ -256,14 +333,15 @@ public class LatticeView extends SurfaceView implements SurfaceHolder.Callback, 
         public void run() {
             Canvas c;
             while (run) {               		
-            	if(draw && (frames < maxframes || maxframes == -1)){ 
+            	if((drawNext||drawCurrent) && (frames < maxframes || maxframes == -1)){ 
             		c = null;
             		frames++;
-            		// get matrix from queue and draw it on backBuffer
-            		view.drawOnCanvas(backCanvas);
-            		if (handler.getLooper() != null){
-            			handler.sendEmptyMessage(1); // tells simThread its ok to update matrix
+            		if (drawNext){           		
+            			view.drawNextOnCanvas(backCanvas); // get matrix from queue and draw it on backBuffer
+            			if (handler.getLooper() != null)
+            				handler.sendEmptyMessage(1); // tells simThread its ok to step model
             		}
+            		else view.drawCurrentOnCanvas(backCanvas); // draw current underlying matrix instead
 
             		try {
             			synchronized (surfaceHolder) {
